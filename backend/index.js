@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import ConnectDB from "./utils/db.js";
+import userRoutes from "./routes/user.routes.js";
 
 dotenv.config({});
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,10 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+
+//  yaha pe hamari api call karenge
+
+app.use('/api/v1/user' , userRoutes)
 
 
 app.listen(PORT, () => {

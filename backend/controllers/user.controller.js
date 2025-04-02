@@ -1,8 +1,9 @@
-import { User } from "./models/user.model.js";
+import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import Cloudinary from "../utils/cloudinary.js";
+import mongoose from "mongoose";
 
 export const register = async (req, res) => {
   try {
@@ -26,7 +27,8 @@ export const register = async (req, res) => {
       .status(201)
       .json({ message: "User registered successfully", success: true });
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    res.status(500).json({ message: "Internal server error", success: false });
   }
 };
 
@@ -97,7 +99,12 @@ export const logout = async (_, res) => {
 
 export const getProfile = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    let { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID" });
+    }
+
     const user = await User.findById(userId);
 
     if (!user) {
@@ -106,9 +113,9 @@ export const getProfile = async (req, res) => {
         .json({ message: "User not found", success: false });
     }
 
-    return res.status(200).json({ user, success: true });
+    return res.status(200).json({ message: "user Found", user, success: true });
   } catch (error) {
-    console.error(error);
+    console.log(error);
   }
 };
 
@@ -147,68 +154,80 @@ export const editProfile = async (req, res) => {
 
 export const getSuggestedUsers = async (req, res) => {
   try {
-    
-    const suggestedUser = await User.find({ _id: { $ne: req.id } }).select('-password');
+    const suggestedUser = await User.find({ _id: { $ne: req.id } }).select(
+      "-password"
+    );
 
     if (!suggestedUser) {
       return res
-       .status(404)
-       .json({ message: "No suggested users found", success: false });
+        .status(404)
+        .json({ message: "No suggested users found", success: false });
     }
 
     return res.status(200).json({ users: suggestedUser, success: true });
-
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 export const followOrUnfollow = async (req, res) => {
   try {
-    
-    const followKrneWala = req.id
-    const jiskoFollowKrunga = req.params.id
+    const followKrneWala = req.id;
+    const jiskoFollowKrunga = req.params.id;
 
-    if ( followKrneWala === jiskoFollowKrunga) {
+    if (followKrneWala === jiskoFollowKrunga) {
       return res
-       .status(400)
-       .json({ message: "You cannot follow yourself", success: false });
+        .status(400)
+        .json({ message: "You cannot follow yourself", success: false });
     }
 
     const user = await User.findById(followKrneWala);
     const targetUser = await User.findById(jiskoFollowKrunga);
 
-     if (!user ||!targetUser) {
+    if (!user || !targetUser) {
       return res
-       .status(400)
-       .json({ message: "User not found", success: false });
+        .status(400)
+        .json({ message: "User not found", success: false });
     }
 
     // now checking that shoudl we follow or unfollow
 
     const isFollowing = user.following.includes(jiskoFollowKrunga);
 
-    if(isFollowing){
-
+    if (isFollowing) {
       // Unfollow logic here
 
       await Promise.all([
-        User.updateOne({ _id: followKrneWala }, { $pull: { following: jiskoFollowKrunga } }),
-        User.updateOne({ _id: jiskoFollowKrunga }, { $pull: { followers: followKrneWala } })
-      ])
-      return res.status(200).json({ message: "Unfollowed successfully", success: true });
-    } 
-    else {
-
+        User.updateOne(
+          { _id: followKrneWala },
+          { $pull: { following: jiskoFollowKrunga } }
+        ),
+        User.updateOne(
+          { _id: jiskoFollowKrunga },
+          { $pull: { followers: followKrneWala } }
+        ),
+      ]);
+      return res
+        .status(200)
+        .json({ message: "Unfollowed successfully", success: true });
+    } else {
       // Follow logic here
 
       await Promise.all([
-        User.updateOne({ _id: followKrneWala }, { $push: { following: jiskoFollowKrunga } }),
-        User.updateOne({ _id: jiskoFollowKrunga }, { $push: { followers: followKrneWala } })
-      ])
-      return res.status(200).json({ message: "Followed successfully", success: true });
+        User.updateOne(
+          { _id: followKrneWala },
+          { $push: { following: jiskoFollowKrunga } }
+        ),
+        User.updateOne(
+          { _id: jiskoFollowKrunga },
+          { $push: { followers: followKrneWala } }
+        ),
+      ]);
+      return res
+        .status(200)
+        .json({ message: "Followed successfully", success: true });
     }
   } catch (error) {
     console.log(error);
   }
-}
+};
