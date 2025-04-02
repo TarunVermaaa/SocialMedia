@@ -105,7 +105,7 @@ export const getProfile = async (req, res) => {
       return res.status(400).json({ message: "Invalid User ID" });
     }
 
-    const user = await User.findById(userId);
+    let user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res
@@ -127,28 +127,39 @@ export const editProfile = async (req, res) => {
     let cloudResponse;
 
     if (profilePicture) {
-      const fileUri = getDataUri(profilePicture);
-      cloudResponse = await Cloudinary.uploader.upload(fileUri);
+      // ✅ Cloudinary me `buffer` bhejne ka sahi tareeka
+      cloudResponse = await new Promise((resolve, reject) => {
+        const uploadStream = Cloudinary.uploader.upload_stream(
+          { resource_type: "image" },
+          (error, result) => {
+            if (error) {
+              console.error("Cloudinary Upload Error:", error);
+              return reject(error);
+            }
+            resolve(result);
+          }
+        );
+        uploadStream.end(profilePicture.buffer);
+      });
     }
 
+    // ✅ User find karne ka check
     const user = await User.findById(userId);
     if (!user) {
-      return res
-        .status(404)
-        .json({ message: "User not found", success: false });
+      return res.status(404).json({ message: "User not found", success: false });
     }
 
+    // ✅ User ka data update karna
     if (bio) user.bio = bio;
     if (gender) user.gender = gender;
-    if (profilePicture) user.profilePicture = cloudResponse.secure_url;
+    if (cloudResponse) user.profilePicture = cloudResponse.secure_url;
 
     await user.save();
 
-    return res
-      .status(200)
-      .json({ message: "Profile updated successfully", success: true });
+    return res.status(200).json({ message: "Profile updated successfully", success: true });
   } catch (error) {
-    console.log(error);
+    console.error("Edit Profile Error:", error);
+    return res.status(500).json({ message: "Internal server error", success: false });
   }
 };
 
