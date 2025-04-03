@@ -12,9 +12,6 @@ router.route('/:userId/profile').get(isAuthenticated , getProfile)
 router.route('/profile/edit').post(isAuthenticated , upload.single('profilePicture') , editProfile)
 router.route('/suggested').get(isAuthenticated , getSuggestedUsers)
 router.route('/followorunfollow/:id').post(isAuthenticated , followOrUnfollow)
-router.get('/test/profile', (req, res) => {
-  res.json({ message: 'Profile API is working!' });
-});
 
 
 export default router;

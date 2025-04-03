@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import Cloudinary from "../utils/cloudinary.js";
 import mongoose from "mongoose";
+import { Post } from "../models/post.model.js";
 
 export const register = async (req, res) => {
   try {
@@ -56,6 +57,21 @@ export const login = async (req, res) => {
         .json({ message: "Incorrect email or password", success: false });
     }
 
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+      expiresIn: "1d",
+    });
+
+    //  populating the post with data from the POST model
+    const populatedPosts = await Promise.all(
+      user.posts.map(async (postId) => {
+        const post = await Post.findById(postId);
+        if (post.author.equals(user._id)) {
+          return post;
+        }
+        return null;
+      })
+    );
+
     user = {
       _id: user._id,
       username: user.username,
@@ -64,12 +80,9 @@ export const login = async (req, res) => {
       bio: user.bio,
       followers: user.followers,
       following: user.following,
-      posts: user.posts,
+      posts:  populatedPosts,
     };
 
-    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-      expiresIn: "1d",
-    });
     return res
       .cookie("token", token, {
         httpOnly: true,
@@ -144,9 +157,11 @@ export const editProfile = async (req, res) => {
     }
 
     // ✅ User find karne ka check
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found", success: false });
+      return res
+        .status(404)
+        .json({ message: "User not found", success: false });
     }
 
     // ✅ User ka data update karna
@@ -156,10 +171,14 @@ export const editProfile = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ message: "Profile updated successfully", success: true });
+    return res
+      .status(200)
+      .json({ message: "Profile updated successfully", user, success: true });
   } catch (error) {
     console.error("Edit Profile Error:", error);
-    return res.status(500).json({ message: "Internal server error", success: false });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", success: false });
   }
 };
 
