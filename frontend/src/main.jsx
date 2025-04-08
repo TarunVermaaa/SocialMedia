@@ -7,6 +7,6 @@ import { Toaster } from 'sonner'; // 👈 Import kiya Toaster
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
-    <Toaster richColors position="top-center" closeButton duration={3000} />
+    <Toaster richColors position="top-center"  duration={3000} />
   </StrictMode>
 );

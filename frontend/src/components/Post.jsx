@@ -1,13 +1,12 @@
-
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogOverlay } from "@radix-ui/react-dialog";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "./ui/button";
 
 const Post = () => {
   return (
-    <div className="my-8 bg-red-200 mt-3  w-full max-w-sm mx-auto">
+    <div className="my-8 mt-3 w-full max-w-sm mx-auto">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 p-4">
           <Avatar>
@@ -20,21 +19,34 @@ const Post = () => {
           <DialogTrigger asChild>
             <MoreHorizontal className="cursor-pointer mr-4" />
           </DialogTrigger>
-          <DialogContent className="fixed bg-white p-4 rounded-lg shadow-lg">
-            <Button variant='ghost' className="cursor-pointer w-fit text-red-600 font-bold">
-              Unfollow
-            </Button>
+          <DialogOverlay className="fixed inset-50 ml-[25%] mr-[25%] bg-black/50 rounded-2xl  backdrop-blur-sm" />
+          <DialogContent className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-xl w-[90%] max-w-xs">
+            <div className="flex flex-col gap-3">
+              <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2">
+                Unfollow
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full hover:bg-red-50 text-red-500 font-bold border border-red-100 py-2"
+              >
+                Delete
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
+      </div>
+      <img
+        className="rounded-sm my-2 w-full aspect-square object-cover"
+        src="https://imgs.search.brave.com/_-S7Wy2ezQ3w_Dk77T7ZlCeqUr0nqyzM3FO2vLEfq1w/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by9zdHJvbmctYm9k/eWJ1aWxkZXItbWFu/LXdpdGgtcGVyZmVj/dC1hYnMtc2hvdWxk/ZXJzLWJpY2Vwcy10/cmljZXBzLWNoZXN0/LXBvc2luZy1zbW9r/ZS1oYW5kcy11cF8x/MzY0MDMtNDg2My5q/cGc_c2VtdD1haXNf/aHlicmlkJnc9NzQw" 
+        alt="" 
+      />
+
+
+      <div>
+        
       </div>
     </div>
   );
 };
 
 export default Post;
-
-
-
-
-
-

@@ -5,8 +5,8 @@ import RightSidebar from "./RightSidebar";
 
 const Home = () => {
   return (
-    <div className="flex">
-      <div className="flex-grow lg:ml-[16%] lg:mr-[300px]">
+    <div className="flex min-h-screen">
+      <div className="flex-grow lg:ml-[16%] lg:mr-[100px]">
         <Feed />
         <Outlet />
       </div>
