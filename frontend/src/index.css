@@ -184,3 +184,15 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+
+body {
+  overflow-x: hidden;
+}
+
+/* Ensure dialog backdrop covers entire screen */
+[data-radix-dialog-overlay] {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}

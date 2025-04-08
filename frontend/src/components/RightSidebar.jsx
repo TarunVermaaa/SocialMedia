@@ -2,9 +2,8 @@ import React from "react";
 
 const RightSidebar = () => {
   return (
-    <div className="p-4 py-12 pl-[800%]">
-        RightsideBar
-      {/* Put your right side items here */}
+    <div className="hidden lg:block fixed right-0 top-0 h-screen w-[300px] py-12 bg-green-100">
+      RightsideBar
     </div>
   );
 };
