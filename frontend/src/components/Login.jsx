@@ -6,9 +6,8 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
-const Signup = () => {
+const Login = () => {
   const [input, setInput] = useState({
-    username: "",
     email: "",
     password: "",
   });
@@ -25,7 +24,7 @@ const Signup = () => {
     try {
       setLoading(true);
       const res = await axios.post(
-        "http://localhost:8000/api/v1/user/register",
+        "http://localhost:8000/api/v1/user/login",
         input,
         {
           headers: {
@@ -38,7 +37,6 @@ const Signup = () => {
       if (res.data.success) {
         toast.success(res.data.message);
         setInput({
-          username: "",
           email: "",
           password: "",
         });
@@ -60,18 +58,8 @@ const Signup = () => {
         <div className="my-4">
           <h2 className="text-center font-bold text-xl">LOGO</h2>
           <p className="text-sm text-center">
-            Sign up to see photos and videos from your friends.
+            Login to see photos and videos from your friends.
           </p>
-        </div>
-        <div>
-          <Label className="font-medium">Username</Label>
-          <Input
-            type="text"
-            name="username"
-            value={input.username}
-            onChange={changeEventHandler}
-            className="focus-visible:ring-transparent my-2"
-          />
         </div>
         <div>
           <Label className="font-medium">Email</Label>
@@ -93,11 +81,18 @@ const Signup = () => {
             className="focus-visible:ring-transparent my-2"
           />
         </div>
-        <Button type="submit">Signup</Button>
-        <span className="text-center">Already have an account? <Link to='/login' className="text-blue-200" >Login </Link></span>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </Button>
+        <span className="text-center">
+          Don't have an account?{" "}
+          <Link to="/signup" className="text-blue-200">
+            Signup
+          </Link>
+        </span>
       </form>
     </div>
   );
 };
 
-export default Signup;
+export default Login;
