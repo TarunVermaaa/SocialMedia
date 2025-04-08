@@ -4,10 +4,10 @@ import LeftSidebar from "./LeftSidebar";
 
 const MainLayout = () => {
   return (
-    <div>
+    <div className="flex min-h-screen">
       <LeftSidebar />
-      <div>
-        <Outlet /> {/* This is where the child routes will be rendered */}
+      <div className="flex-1 ml-[16%]"> {/* Shifted to right since sidebar is fixed */}
+        <Outlet />
       </div>
     </div>
   );
