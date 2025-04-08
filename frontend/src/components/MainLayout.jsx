@@ -7,7 +7,7 @@ const MainLayout = () => {
     <div>
       <LeftSidebar />
       <div>
-        <Outlet />
+        <Outlet /> {/* This is where the child routes will be rendered */}
       </div>
     </div>
   );
