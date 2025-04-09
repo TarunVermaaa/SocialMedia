@@ -93,7 +93,7 @@ const Post = () => {
         {/* Comments Trigger */}
         <span
           onClick={() => setOpen(true)}
-          className="text-gray-500 text-sm hover:text-gray-700 mb-2 block"
+          className="text-gray-500 text-sm hover:text-gray-700 mb-2 block cursor-pointer"
         >
           View all 100 comments
         </span>

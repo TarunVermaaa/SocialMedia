@@ -8,9 +8,26 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Link } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
+import { Button } from "./ui/button";
 
 const CommentDialog = ({ open, setOpen }) => {
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const [ text , setText ] = useState('')
+
+  const changeEventHandler = (e) => {
+    const inputText = e.target.value;
+    if (inputText.trim()) {
+      setText(inputText);
+    } else {
+      setText("");
+    }
+  }
+
+  const sendMessageHandler = async () => {
+    alert(text)
+  }
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -48,21 +65,37 @@ const CommentDialog = ({ open, setOpen }) => {
                 </Link>
               </div>
               {/* Rest content */}
+              <hr className="mb-2" />
+              <div className=" text-sm font-light flex-1 overflow-y-auto max-h-96 ">
+                user comments
+              </div>
+              <div className="flex flex-col gap-2 mt-[130%]">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add a comment..."
+                    onChange={changeEventHandler}
+                    value={text}
+                    className="w-full outline-none border text-sm border-gray-300 p-2 rounded-lg"
+                  />
+                  <Button variant='outline' disabled={!text.trim()}  onClick={sendMessageHandler} className= '!bg-white w-1  hover:text-blue-700 !border-none   ' > Send </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* More Options Dialog */}
         <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-          <DialogOverlay className="fixed inset-0 bg-white rounded-lg z-[120]" />
-          <DialogContent className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg  w-64 z-[121]">
+          <DialogOverlay className="fixed rounded-lg z-[120]" />
+          <DialogContent className="fixed flex flex-col items-center text-sm text-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-100 p-4 rounded-lg  w-64 z-[121]">
             <div className="flex flex-col gap-2">
-              <button className="w-full !bg-white text-red-600 hover:bg-gray-100 font-bold py-2 hover:!border-none">
+              <button className="w-full !bg-gray-100 !border-none text-red-600 hover:bg-gray-100 font-bold py-2 hover:!border-none">
                 Unfollow
               </button>
 
-              <button className="w-full !bg-red-600 text-white  font-bold py-2 hover:!bg-red-700 border border-gray-200">
-                Delete
+              <button className="w-full !bg-gray-100  text-black  font-bold py-2 !border-none hover:text-red-700">
+                Add to favourites
               </button>
             </div>
           </DialogContent>
