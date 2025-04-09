@@ -1,21 +1,27 @@
 import { Heart, Home, LogOut, MessageCircle, PlusSquare, Search, TrendingUp } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setAuthUser } from "@/redux/authSlice";
+import CreatePost from "./CreatePost";
 
 
 
 const LeftSidebar = () => {
   const navigate = useNavigate();
   const { user } = useSelector(store => store.auth)
+  const dispatch = useDispatch()
+
+  const [open , setOpen] = useState(false)
 
   const logoutHandler = async () => {
     try {
       const res = await axios.get("http://localhost:8000/api/v1/user/logout", { withCredentials: true });
       if (res.data.success) {
+        dispatch(setAuthUser(null));
         navigate("/login");
         toast.success(res.data.message);
       }
@@ -25,12 +31,18 @@ const LeftSidebar = () => {
     }
   };
 
+
+
+
   const sidebarHandler = (textType) => {
     if (textType === "Logout") {
       logoutHandler();
     }
     if (textType === "Home") {
       navigate("/");
+    }
+    if( textType === 'Create'){
+      setOpen(!open)
     }
   };
 
@@ -74,6 +86,10 @@ const LeftSidebar = () => {
           ))}
         </div>
       </div>
+
+<CreatePost open= {open} setOpen = {setOpen} />
+
+
     </div>
   );
 };
