@@ -6,6 +6,8 @@ import { Button } from "./ui/button";
 import { readFileAsDataURL } from "@/lib/utils";
 import { toast } from "sonner";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { setPosts } from "@/redux/postSlice";
 
 const CreatePost = ({ open, setOpen }) => {
   const imageRef = useRef();
@@ -15,16 +17,43 @@ const CreatePost = ({ open, setOpen }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const {user} = useSelector(store => store.auth)
+  const {posts} = useSelector(store => store.post)  
+
+  const dispatch = useDispatch()
+
   const createPostHandler = async (e) => {
-    e.preventDefault();
+    const formData = new FormData();
+    formData.append("caption", caption);
+    if (imagePreview) formData.append("image", file);
+
     try {
+      setLoading(true);
 
-      const res = await axios
+      const response = await axios.post(
+        "http://localhost:8000/api/v1/post/addpost",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
 
+      if (response.data.success) {
+        dispatch(setPosts([response.data.post, ...posts ]));
+        toast.success(response.data.message);
+        setOpen(false);
+        setCaption("");
+        setImagePreview(null);
+        setFile(null);
+      }
     } catch (error) {
-
       toast.error(error.response?.data?.message || "Post creation failed");
-
+      console.error("Post creation failed", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,20 +81,21 @@ const CreatePost = ({ open, setOpen }) => {
           <div className="flex gap-4 items-center">
             <Avatar className="w-10 h-10">
               <AvatarImage
-                src="https://example.com/avatar.jpg"
+                src={user?.profilePicture}
+                className="w-full h-full object-cover rounded-full"
                 alt="User Avatar"
               />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
 
             <div>
-              <h2 className="font-semibold text-sm">Username</h2>
+              <h2 className="font-semibold text-sm">{user?.username}</h2>
               <span className="text-gray-600 text-xs">Bio here...</span>
             </div>
           </div>
 
           <Textarea
-          value={caption}
+            value={caption}
             onChange={(e) => setCaption(e.target.value)}
             className="border-gray-300 focus:ring-2 focus:ring-[#0095F6] rounded-md"
             placeholder="Write a caption..."
@@ -97,7 +127,11 @@ const CreatePost = ({ open, setOpen }) => {
               (loading ? (
                 <Button> Please wait... </Button>
               ) : (
-                <Button onClick={createPostHandler} type="submit" className="w-full">
+                <Button
+                  onClick={createPostHandler}
+                  type="submit"
+                  className="w-full"
+                >
                   Post
                 </Button>
               ))}

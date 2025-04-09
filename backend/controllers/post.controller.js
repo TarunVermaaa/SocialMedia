@@ -18,7 +18,9 @@ export const addNewPost = async (req, res) => {
       .toFormat("jpeg", { quality: 80 })
       .toBuffer();
 
-    const fileUri = `data:image/jpeg;base64,${optimizedImageBuffer.toString("base64")}`;
+    const fileUri = `data:image/jpeg;base64,${optimizedImageBuffer.toString(
+      "base64"
+    )}`;
     const cloudResponse = await Cloudinary.uploader.upload(fileUri);
     const post = await Post.create({
       caption,
@@ -34,7 +36,9 @@ export const addNewPost = async (req, res) => {
 
     await post.populate({ path: "author", select: "-password" });
 
-    res.status(201).json({ message: "Post created successfully", post });
+    res
+      .status(201)
+      .json({ success: true, message: "Post created successfully", post });
   } catch (error) {
     console.log(error);
   }
@@ -44,24 +48,24 @@ export const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find()
       .sort({ createdAt: -1 })
-      .populate({ path: "author", select: "username , profilePicture" })
+      .populate({ path: "author", select: "username  profilePicture" })
       .populate({
         path: "comments",
         sort: { createdAt: -1 },
-        populate: { path: "author", select: "username , profilePicture" },
+        populate: { path: "author", select: "username  profilePicture" },
       });
 
-      return res.status(200).json({ message: "Posts fetched successfully", posts });
-
+    return res
+      .status(200)
+      .json({ message: "Posts fetched successfully", posts , success: true });
   } catch (error) {
     console.log(error);
   }
 };
 
-
 export const getUserPost = async (req, res) => {
   try {
-    const posts = await Post.find({author: authorId})
+    const posts = await Post.find({ author: authorId })
       .sort({ createdAt: -1 })
       .populate({ path: "author", select: "username , profilePicture" })
       .populate({
@@ -70,59 +74,57 @@ export const getUserPost = async (req, res) => {
         populate: { path: "author", select: "username , profilePicture" },
       });
 
-      return res.status(200).json({ message: "User Posts fetched successfully", posts });
-
+    return res
+      .status(200)
+      .json({ message: "User Posts fetched successfully", posts });
   } catch (error) {
     console.log(error);
   }
 };
-
 
 export const likePost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const LikeKarneWaleKiID = req.id;
     const post = await Post.findById(postId);
-    if(!post) return res.status(404).json({ message: "Post not found" });
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
     // Like logic here
     await post.updateOne({ $addToSet: { likes: LikeKarneWaleKiID } });
     await post.save();
 
     res.status(200).json({ message: "Like added successfully", post });
-
   } catch (error) {
     console.log(error);
   }
-}
-
+};
 
 export const dislikePost = async (req, res) => {
   try {
     const postId = req.params.postId;
     const LikeKarneWaleKiID = req.id;
     const post = await Post.findById(postId);
-    if(!post) return res.status(404).json({ message: "Post not found" });
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
     // Like logic here
     await post.updateOne({ $pull: { likes: LikeKarneWaleKiID } });
     await post.save();
 
     res.status(200).json({ message: "DisLike added successfully", post });
-
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 export const addComment = async (req, res) => {
   try {
     const postId = req.params.postId;
-    const {text} = req.body;
+    const { text } = req.body;
     const CommentKarneWaleKiID = req.id;
     const post = await Post.findById(postId);
-    if(!post) return res.status(404).json({ message: "Post not found" });
-    if(!text) return res.status(400).json({ message: "Please provide a comment" });
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    if (!text)
+      return res.status(400).json({ message: "Please provide a comment" });
 
     const comment = await Comment.create({
       text,
@@ -133,26 +135,34 @@ export const addComment = async (req, res) => {
     post.comments.push(comment._id);
     await post.save();
 
-    return res.status(201).json({ message: "Comment added successfully", comment });
-    
+    return res
+      .status(201)
+      .json({ message: "Comment added successfully", comment });
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 export const getCommentsOfPost = async (req, res) => {
   try {
     const postId = req.params.postId;
-    const comments = await Comment.find({ post: postId }).populate({ path: "author", select: "username, profilePicture" });
-    
-    if(!comments) return res.status(404).json({ message: "No comments found for this post" });
+    const comments = await Comment.find({ post: postId }).populate({
+      path: "author",
+      select: "username, profilePicture",
+    });
 
-    return res.status(200).json({ message: "Comments fetched successfully", comments });
-    
+    if (!comments)
+      return res
+        .status(404)
+        .json({ message: "No comments found for this post" });
+
+    return res
+      .status(200)
+      .json({ message: "Comments fetched successfully", comments });
   } catch (error) {
-   console.log(error); 
+    console.log(error);
   }
-}
+};
 
 export const deletePost = async (req, res) => {
   try {
@@ -161,26 +171,28 @@ export const deletePost = async (req, res) => {
     const post = await Post.findById(postId);
 
     //  check if post exists and if it belongs to the authenticated user
-    if(!post) return res.status(404).json({ message: "Post not found" });
-    if(post.author.toString() !== authorId) return res.status(403).json({ message: "You are not authorized to delete this post" });
-    
+    if (!post) return res.status(404).json({ message: "Post not found" });
+    if (post.author.toString() !== authorId)
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to delete this post" });
+
     // delete post
     await Post.findByIdAndDelete(postId);
 
     // remove post id from user's posts array
-    let user = await User.findById(authorId)
-    user.posts = user.posts.filter(id => id.toString() !== postId);
+    let user = await User.findById(authorId);
+    user.posts = user.posts.filter((id) => id.toString() !== postId);
     await user.save();
 
     //  delete all comments associated with the post
-     await Comment.deleteMany({ post: postId });
+    await Comment.deleteMany({ post: postId });
 
-     return res.status(200).json({ message: "Post deleted successfully" });
-    
+    return res.status(200).json({ message: "Post deleted successfully" });
   } catch (error) {
     console.log(error);
   }
-}
+};
 
 // bookmarking a post
 
@@ -190,24 +202,24 @@ export const bookmarkPost = async (req, res) => {
     const authorId = req.id;
     const post = await Post.findById(postId);
 
-    if(!post) return res.status(404).json({ message: "Post not found" });
+    if (!post) return res.status(404).json({ message: "Post not found" });
 
     // check if the user has already bookmarked the post
     const user = await User.findById(authorId);
-    if(user.bookmarks.includes(post._id)){
-     await user.updateOne({ $pull: { bookmarks: post._id } });
-     await user.save();
-     return res.status(200).json({ message: "Post unbookmarked successfully" , type: "unsaved" });
-
-    } 
-    else
-          {
+    if (user.bookmarks.includes(post._id)) {
+      await user.updateOne({ $pull: { bookmarks: post._id } });
+      await user.save();
+      return res
+        .status(200)
+        .json({ message: "Post unbookmarked successfully", type: "unsaved" });
+    } else {
       await user.updateOne({ $addToSet: { bookmarks: post._id } });
       await user.save();
-      return res.status(200).json({ message: "Post bookmarked successfully", type: "saved" });
+      return res
+        .status(200)
+        .json({ message: "Post bookmarked successfully", type: "saved" });
     }
-
   } catch (error) {
     console.log(error);
   }
-}
+};

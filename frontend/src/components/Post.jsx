@@ -11,7 +11,7 @@ import { Button } from "./ui/button";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import CommentDialog from "./CommentDialog";
 
-const Post = () => {
+const Post = ({post}) => {
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -24,16 +24,17 @@ const Post = () => {
     }
   };
 
+
   return (
     <div className="my-8 mt-3 w-full max-w-sm mx-auto bg-white rounded-lg shadow-md">
       {/* Header Section */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src="" alt="post_image" />
+            <AvatarImage src={post.author?.profilePicture} alt="post_image" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-          <h3 className="font-medium">username</h3>
+          <h3 className="font-medium text-black">{post.author?.username}</h3>
         </div>
 
         {/* Options Dialog */}
@@ -61,7 +62,7 @@ const Post = () => {
       {/* Post Image */}
       <img
         className="w-full aspect-square object-cover"
-        src="https://imgs.search.brave.com/_-S7Wy2ezQ3w_Dk77T7ZlCeqUr0nqyzM3FO2vLEfq1w/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by9zdHJvbmctYm9k/eWJ1aWxkZXItbWFu/LXdpdGgtcGVyZmVj/dC1hYnMtc2hvdWxk/ZXJzLWJpY2Vwcy10/cmljZXBzLWNoZXN0/LXBvc2luZy1zbW9r/ZS1oYW5kcy11cF8x/MzY0MDMtNDg2My5q/cGc_c2VtdD1haXNf/aHlicmlkJnc9NzQw"
+        src={post.image}
         alt=""
       />
 
@@ -84,10 +85,10 @@ const Post = () => {
         </div>
 
         {/* Likes and Caption */}
-        <span className="font-medium block">1k likes</span>
+        <span className="font-medium block">{post.likes.length} likes</span>
         <p className="mb-1">
-          <span className="font-medium mr-2">username</span>
-          caption
+          <span className="font-medium mr-2">{post.author.username}</span>
+          {post.caption}
         </p>
 
         {/* Comments Trigger */}
@@ -95,7 +96,7 @@ const Post = () => {
           onClick={() => setOpen(true)}
           className="text-gray-500 text-sm hover:text-gray-700 mb-2 block cursor-pointer"
         >
-          View all 100 comments
+          View all {post.comments.length} comments
         </span>
 
         {/* Comment Input */}
