@@ -109,10 +109,6 @@ const Post = ({ post }) => {
   };
 
 
-   
-
-
-
   const postDeleteHandler = async () => {
     try {
       const response = await axios.delete(
