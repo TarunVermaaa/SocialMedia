@@ -31,6 +31,10 @@ const CommentDialog = ({ open, setOpen }) => {
   }
 
 
+  
+
+
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]" />
@@ -69,6 +73,7 @@ const CommentDialog = ({ open, setOpen }) => {
               {/* Rest content */}
               <hr className="mb-2" />
               <div className=" text-sm font-light flex-1 overflow-y-auto max-h-96 ">
+                
                 user comments
               </div>
               <div className="flex flex-col gap-2 mt-[130%]">
