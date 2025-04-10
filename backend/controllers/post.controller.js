@@ -8,7 +8,7 @@ export const addNewPost = async (req, res) => {
   try {
     const { caption } = req.body;
     const image = req.file;
-    const authorId = req.id;
+    const authorId = req.id; 
 
     if (!image)
       return res.status(400).json({ message: "Please upload an image" });
@@ -67,16 +67,16 @@ export const getUserPost = async (req, res) => {
   try {
     const posts = await Post.find({ author: authorId })
       .sort({ createdAt: -1 })
-      .populate({ path: "author", select: "username , profilePicture" })
+      .populate({ path: "author", select: "username  profilePicture" })
       .populate({
         path: "comments",
         sort: { createdAt: -1 },
-        populate: { path: "author", select: "username , profilePicture" },
+        populate: { path: "author", select: "username  profilePicture" },
       });
 
     return res
       .status(200)
-      .json({ message: "User Posts fetched successfully", posts });
+      .json({ message: "User Posts fetched successfully", posts , success: true });
   } catch (error) {
     console.log(error);
   }
@@ -93,7 +93,7 @@ export const likePost = async (req, res) => {
     await post.updateOne({ $addToSet: { likes: LikeKarneWaleKiID } });
     await post.save();
 
-    res.status(200).json({ message: "Like added successfully", post });
+    res.status(200).json({ message: "Like added successfully", post , success: true });
   } catch (error) {
     console.log(error);
   }
@@ -110,7 +110,7 @@ export const dislikePost = async (req, res) => {
     await post.updateOne({ $pull: { likes: LikeKarneWaleKiID } });
     await post.save();
 
-    res.status(200).json({ message: "DisLike added successfully", post });
+    res.status(200).json({ message: "DisLike added successfully", post , success: true });
   } catch (error) {
     console.log(error);
   }
@@ -130,14 +130,16 @@ export const addComment = async (req, res) => {
       text,
       author: CommentKarneWaleKiID,
       post: postId,
-    }).populate({ path: "author", select: "username, profilePicture" });
+    })
+
+    await comment.populate({ path: "author", select: "username  profilePicture" })
 
     post.comments.push(comment._id);
     await post.save();
 
     return res
       .status(201)
-      .json({ message: "Comment added successfully", comment });
+      .json({ message: "Comment added successfully", comment , success: true });
   } catch (error) {
     console.log(error);
   }
@@ -148,7 +150,7 @@ export const getCommentsOfPost = async (req, res) => {
     const postId = req.params.postId;
     const comments = await Comment.find({ post: postId }).populate({
       path: "author",
-      select: "username, profilePicture",
+      select: "username profilePicture",
     });
 
     if (!comments)
@@ -158,7 +160,7 @@ export const getCommentsOfPost = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Comments fetched successfully", comments });
+      .json({ message: "Comments fetched successfully", comments , success: true });
   } catch (error) {
     console.log(error);
   }
@@ -188,7 +190,7 @@ export const deletePost = async (req, res) => {
     //  delete all comments associated with the post
     await Comment.deleteMany({ post: postId });
 
-    return res.status(200).json({ message: "Post deleted successfully" });
+    return res.status(200).json({ message: "Post deleted successfully" , success: true });
   } catch (error) {
     console.log(error);
   }
@@ -211,7 +213,7 @@ export const bookmarkPost = async (req, res) => {
       await user.save();
       return res
         .status(200)
-        .json({ message: "Post unbookmarked successfully", type: "unsaved" });
+        .json({ message: "Post unbookmarked successfully", type: "unsaved" , success : true });
     } else {
       await user.updateOne({ $addToSet: { bookmarks: post._id } });
       await user.save();

@@ -9,11 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Link } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "./ui/button";
+import { useSelector } from "react-redux";
 
 const CommentDialog = ({ open, setOpen }) => {
   const [moreOpen, setMoreOpen] = useState(false);
 
   const [ text , setText ] = useState('')
+  const {selectedPost} = useSelector(store => store.post)
 
   const changeEventHandler = (e) => {
     const inputText = e.target.value;
@@ -46,7 +48,7 @@ const CommentDialog = ({ open, setOpen }) => {
         <div className="flex gap-4 w-full">
           <img
             className="w-3/5 h-full aspect-square object-cover rounded-lg"
-            src="https://imgs.search.brave.com/_-S7Wy2ezQ3w_Dk77T7ZlCeqUr0nqyzM3FO2vLEfq1w/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/ZnJlZXBpay5jb20v/cHJlbWl1bS1waG90/by9zdHJvbmctYm9k/eWJ1aWxkZXItbWFu/LXdpdGgtcGVyZmVj/dC1hYnMtc2hvdWxk/ZXJzLWJpY2Vwcy10/cmljZXBzLWNoZXN0/LXBvc2luZy1zbW9r/ZS1oYW5kcy11cF8x/MzY0MDMtNDg2My5q/cGc_c2VtdD1haXNf/aHlicmlkJnc9NzQw"
+            src={selectedPost?.image}
             alt="post_img"
           />
 
@@ -56,12 +58,12 @@ const CommentDialog = ({ open, setOpen }) => {
               <div className="flex items-center gap-3 mb-4">
                 <Link>
                   <Avatar>
-                    <AvatarImage src="" alt="post_image" />
+                    <AvatarImage src={selectedPost?.author.profilePicture} alt="post_image" />
                     <AvatarFallback className="text-black">CN</AvatarFallback>
                   </Avatar>
                 </Link>
                 <Link className="font-semibold text-xs">
-                  <span className="text-black">username</span>
+                  <span className="text-black">{selectedPost?.author.username}</span>
                 </Link>
               </div>
               {/* Rest content */}
