@@ -4,25 +4,61 @@ import {
   DialogOverlay,
   DialogTrigger,
 } from "@radix-ui/react-dialog";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Link } from "react-router-dom";
 import { MoreHorizontal } from "lucide-react";
 import { Button } from "./ui/button";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Comment from "./Comment";
+import { setPosts } from "@/redux/postSlice";
+import { toast } from "sonner";
+import axios from "axios";
 
-const CommentDialog = ({ open, setOpen }) => {
+const CommentDialog = ({ open, setOpen, post }) => {
   const [moreOpen, setMoreOpen] = useState(false);
-  const [text, setText] = useState('');
-  const { selectedPost } = useSelector(store => store.post);
+  const [text, setText] = useState("");
+  const [comment, setComment] = useState(post.comments);
+  const dispatch = useDispatch();
+
+  const { selectedPost, posts } = useSelector((store) => store.post);
+
+  useEffect(() => {
+    setComment(post.comments);
+  }, [post.comments]);
 
   const changeEventHandler = (e) => {
     setText(e.target.value);
   };
 
-  const sendMessageHandler = async () => {
-    alert(text);
+  const sendMessageHandler = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/api/v1/post/${post._id}/comment`,
+        { text },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (res.data.success) {
+        const updatedCommentData = [...comment, res.data.comment];
+        setComment(updatedCommentData);
+
+        const updatedPostData = posts.map((p) =>
+          p._id === post._id ? { ...p, comments: updatedCommentData } : p
+        );
+
+        dispatch(setPosts(updatedPostData));
+
+        setText("");
+        toast.success(res.data.message || "Comment added successfully");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Comment failed");
+      console.log("Comment failed", error);
+    }
   };
 
   return (
@@ -37,7 +73,7 @@ const CommentDialog = ({ open, setOpen }) => {
           <img
             className="w-full h-full object-contain rounded-l-lg"
             src={selectedPost?.image}
-            alt="post_img"
+            alt="post"
           />
         </div>
 
@@ -47,12 +83,17 @@ const CommentDialog = ({ open, setOpen }) => {
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={selectedPost?.author.profilePicture} alt="post_image" />
+                <AvatarImage
+                  src={selectedPost?.author.profilePicture}
+                  alt={selectedPost?.author.username}
+                />
                 <AvatarFallback className="text-black">
                   {selectedPost?.author.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="font-semibold text-sm">{selectedPost?.author.username}</span>
+              <span className="font-semibold text-sm">
+                {selectedPost?.author.username}
+              </span>
             </div>
             <MoreHorizontal
               className="cursor-pointer text-black hover:text-gray-600"
@@ -62,14 +103,16 @@ const CommentDialog = ({ open, setOpen }) => {
 
           {/* Comments Container */}
           <div className="flex-1 overflow-y-auto p-4">
-            {selectedPost?.comments.map(comment => (
-              <Comment key={comment._id} comment={comment} />
-            ))}
+            {comment?.length > 0 ? (
+              comment.map((c) => <Comment key={c._id} comment={c} />)
+            ) : (
+              <p className="text-sm text-gray-500">No comments yet.</p>
+            )}
           </div>
 
           {/* Comment Input */}
           <div className="p-4 border-t">
-            <div className="flex items-center gap-2">
+            <form className="flex items-center gap-2">
               <input
                 type="text"
                 placeholder="Add a comment..."
@@ -77,8 +120,16 @@ const CommentDialog = ({ open, setOpen }) => {
                 onChange={changeEventHandler}
                 className="flex-1 outline-none border border-gray-300 p-2 rounded-lg text-sm"
               />
-              <Button variant='outline' disabled={!text.trim()}  onClick={sendMessageHandler} className= '!bg-white w-1  hover:text-blue-700 !border-none   ' > Post </Button> 
-            </div>
+              <Button
+                type="submit"
+                onClick={sendMessageHandler}
+                variant="outline"
+                disabled={!text.trim()}
+                className="!bg-white hover:text-blue-700 !border-none"
+              >
+                Post
+              </Button>
+            </form>
           </div>
         </div>
 
@@ -87,7 +138,10 @@ const CommentDialog = ({ open, setOpen }) => {
           <DialogOverlay className="fixed inset-0 bg-black/50 z-[120]" />
           <DialogContent className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg w-64 z-[121]">
             <div className="flex flex-col gap-2">
-              <Button variant="ghost" className="text-red-600 hover:bg-gray-100">
+              <Button
+                variant="ghost"
+                className="text-red-600 hover:bg-gray-100"
+              >
                 Unfollow
               </Button>
               <Button variant="ghost" className="hover:bg-gray-100">
@@ -102,8 +156,3 @@ const CommentDialog = ({ open, setOpen }) => {
 };
 
 export default CommentDialog;
-
-
-
-
-

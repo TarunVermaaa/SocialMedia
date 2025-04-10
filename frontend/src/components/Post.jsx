@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   Dialog,
@@ -12,22 +12,31 @@ import { FaHeart, FaRegHeart } from "react-icons/fa";
 import CommentDialog from "./CommentDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import axios, { Axios } from "axios";
+import axios from "axios";
 import { setPosts, setSelectedPost } from "@/redux/postSlice";
 
 const Post = ({ post }) => {
+  if (!post) return null;
+
   const [text, setText] = useState("");
   const [open, setOpen] = useState(false);
-  const [postLike, setPostLike] = useState(post.likes.length);
-  const [comment, setComment] = useState(post.comments);
+  const [postLike, setPostLike] = useState(post?.likes?.length || 0);
+  const [comment, setComment] = useState(post?.comments || []);
+  const [commentCount, setCommentCount] = useState(post?.comments?.length || 0);
 
   const { posts } = useSelector((store) => store.post);
-
   const { user } = useSelector((store) => store.auth);
 
-  const [liked, setLiked] = useState(post.likes.includes(user?._id) || false);
-
+  const [liked, setLiked] = useState(post?.likes?.includes(user?._id) || false);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const latestPost = posts.find((p) => p._id === post._id);
+    if (latestPost) {
+      setComment(latestPost.comments || []);
+      setCommentCount(latestPost.comments?.length || 0);
+    }
+  }, [posts, post._id]);
 
   const changeEventHandler = (e) => {
     const inputText = e.target.value;
@@ -38,7 +47,6 @@ const Post = ({ post }) => {
     }
   };
 
-  //  Handler for like or unlike post
   const likeOrDislikeHandler = async () => {
     try {
       const action = liked ? "dislike" : "like";
@@ -51,8 +59,6 @@ const Post = ({ post }) => {
         setPostLike(updatedLikes);
         setLiked(!liked);
 
-        // Update the post in the Redux store
-
         const updatedPostData = posts.map((p) =>
           p._id === post._id
             ? {
@@ -64,7 +70,6 @@ const Post = ({ post }) => {
             : p
         );
         dispatch(setPosts(updatedPostData));
-
         toast.success(res.data.message);
       }
     } catch (error) {
@@ -73,7 +78,6 @@ const Post = ({ post }) => {
     }
   };
 
-  // Handler for adding a comment
   const commentHandler = async (e) => {
     e.preventDefault();
     try {
@@ -91,15 +95,14 @@ const Post = ({ post }) => {
       if (res.data.success) {
         const updatedCommentData = [...comment, res.data.comment];
         setComment(updatedCommentData);
+        setCommentCount(updatedCommentData.length);
 
-        // Update the post in the Redux store
         const updatedPostData = posts.map((p) =>
           p._id === post._id ? { ...p, comments: updatedCommentData } : p
         );
 
         dispatch(setPosts(updatedPostData));
-        setText(""); // Clear the input field
-
+        setText("");
         toast.success(res.data.message || "Comment added successfully");
       }
     } catch (error) {
@@ -107,7 +110,6 @@ const Post = ({ post }) => {
       console.log("Comment failed", error);
     }
   };
-
 
   const postDeleteHandler = async () => {
     try {
@@ -117,7 +119,6 @@ const Post = ({ post }) => {
       );
 
       if (response.data.success) {
-        // Remove the deleted post from the posts array in the Redux store
         const updatedPosts = posts.filter(
           (postItems) => postItems._id !== post._id
         );
@@ -132,17 +133,15 @@ const Post = ({ post }) => {
 
   return (
     <div className="my-8 mt-3 w-full max-w-sm mx-auto bg-white rounded-lg shadow-md">
-      {/* Header Section */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={post.author?.profilePicture} alt="post_image" />
+            <AvatarImage src={post?.author?.profilePicture} alt="post_image" />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-          <h3 className="font-medium text-black">{post.author?.username}</h3>
+          <h3 className="font-medium text-black">{post?.author?.username}</h3>
         </div>
 
-        {/* Options Dialog */}
         <Dialog>
           <DialogTrigger asChild>
             <MoreHorizontal className="cursor-pointer mr-2" />
@@ -150,10 +149,10 @@ const Post = ({ post }) => {
           <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50" />
           <DialogContent className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-xl w-64 z-50">
             <div className="flex flex-col gap-2">
-              <Button className="w-full !bg-white text-red-600  hover:text-blue-400 hover:!border-none font-bold py-2">
+              <Button className="w-full !bg-white text-red-600 hover:text-blue-400 hover:!border-none font-bold py-2">
                 Unfollow
               </Button>
-              {user && user._id === post.author._id && (
+              {user && user._id === post?.author?._id && (
                 <Button
                   onClick={postDeleteHandler}
                   variant="ghost"
@@ -167,14 +166,12 @@ const Post = ({ post }) => {
         </Dialog>
       </div>
 
-      {/* Post Image */}
       <img
         className="w-full aspect-square object-cover"
-        src={post.image}
+        src={post?.image}
         alt=""
       />
 
-      {/* Actions Section */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-4">
@@ -182,7 +179,7 @@ const Post = ({ post }) => {
               <FaHeart
                 onClick={likeOrDislikeHandler}
                 size={22}
-                className=" text-red-500  cursor-pointer"
+                className="text-red-500 cursor-pointer"
               />
             ) : (
               <FaRegHeart
@@ -191,7 +188,6 @@ const Post = ({ post }) => {
                 className="hover:text-gray-600 cursor-pointer"
               />
             )}
-
             <MessageCircle
               onClick={() => {
                 dispatch(setSelectedPost(post));
@@ -205,14 +201,12 @@ const Post = ({ post }) => {
           <Bookmark size={22} className="hover:text-gray-600 cursor-pointer" />
         </div>
 
-        {/* Likes and Caption */}
         <span className="font-medium block">{postLike} likes</span>
         <p className="mb-1">
-          <span className="font-medium mr-2">{post.author.username}</span>
-          {post.caption}
+          <span className="font-medium mr-2">{post?.author?.username}</span>
+          {post?.caption}
         </p>
 
-        {/* Comments Trigger */}
         <span
           onClick={() => {
             dispatch(setSelectedPost(post));
@@ -220,10 +214,9 @@ const Post = ({ post }) => {
           }}
           className="text-gray-500 text-sm hover:text-gray-700 mb-2 block cursor-pointer"
         >
-          View all {comment.length} comments
+          View all {commentCount} comments
         </span>
 
-        {/* Comment Input */}
         <div className="flex items-center gap-2 pt-3 border-t">
           <input
             type="text"
@@ -243,8 +236,7 @@ const Post = ({ post }) => {
         </div>
       </div>
 
-      {/* Comment Dialog */}
-      <CommentDialog open={open} setOpen={setOpen} />
+      <CommentDialog open={open} setOpen={setOpen} post={post} />
     </div>
   );
 };
