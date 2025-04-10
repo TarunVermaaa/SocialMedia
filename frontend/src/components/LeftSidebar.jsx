@@ -57,7 +57,7 @@ const LeftSidebar = () => {
       Icon: (
         <Avatar>
           <AvatarImage src={user?.profilePicture} alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
+          <AvatarFallback>{ user?.username?.charAt(0).toUpperCase() }</AvatarFallback>
         </Avatar>
       ),
       text: "Profile",
