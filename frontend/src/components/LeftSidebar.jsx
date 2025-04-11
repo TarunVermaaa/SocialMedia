@@ -44,6 +44,9 @@ const LeftSidebar = () => {
     if( textType === 'Create'){
       setOpen(!open)
     }
+    if( textType === 'Profile'){
+      navigate(`/profile/${user?._id}`)
+    }
   };
 
   const sideBarItems = [

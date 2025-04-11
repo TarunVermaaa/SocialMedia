@@ -80,7 +80,7 @@ export const login = async (req, res) => {
       bio: user.bio,
       followers: user.followers,
       following: user.following,
-      posts:  populatedPosts,
+      posts: populatedPosts,
     };
 
     return res
@@ -112,13 +112,15 @@ export const logout = async (_, res) => {
 
 export const getProfile = async (req, res) => {
   try {
-    let { userId } = req.params;
+    const userId = req.params.userId;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid User ID" });
     }
 
-    let user = await User.findById(userId).select("-password");
+    let user = await User.findById(userId)
+      .populate({ path: "posts", createdAt: -1 })
+      .populate({ path: "bookmarks" });
 
     if (!user) {
       return res
@@ -129,6 +131,9 @@ export const getProfile = async (req, res) => {
     return res.status(200).json({ message: "user Found", user, success: true });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", success: false });
   }
 };
 
