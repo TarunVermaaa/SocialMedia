@@ -6,15 +6,15 @@ import ConnectDB from "./utils/db.js";
 import userRoutes from "./routes/user.routes.js";
 import postRoutes from "./routes/post.route.js";
 import messageRoutes from "./routes/message.route.js";
+import { app , server , io } from "./socket/socket.js";
 
 dotenv.config({});
 const PORT = process.env.PORT || 3000;
 
-const app = express();
 
 app.get("/", (_, res) => {
   return res.status(200).json({
-    message: "Hello, i am backend!",
+    message: "Hello, i am backend!", 
     success: true,
   });
 });
@@ -35,7 +35,7 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/post", postRoutes);
 app.use("/api/v1/message", messageRoutes);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   ConnectDB();
   console.log(`Server is running on port ${PORT}`);
 });
