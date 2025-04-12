@@ -8,7 +8,7 @@ export const addNewPost = async (req, res) => {
   try {
     const { caption } = req.body;
     const image = req.file;
-    const authorId = req.id; 
+    const authorId = req.id;
 
     if (!image)
       return res.status(400).json({ message: "Please upload an image" });
@@ -34,13 +34,21 @@ export const addNewPost = async (req, res) => {
       await user.save();
     }
 
-    await post.populate({ path: "author", select: "-password" });
+    // Get the complete post data with author and timestamps
+    const completePost = await Post.findById(post._id)
+      .populate({ path: "author", select: "-password" })
+      .lean();
 
     res
       .status(201)
-      .json({ success: true, message: "Post created successfully", post });
+      .json({
+        success: true,
+        message: "Post created successfully",
+        post: completePost,
+      });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ success: false, message: "Error creating post" });
   }
 };
 
@@ -57,7 +65,7 @@ export const getAllPosts = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Posts fetched successfully", posts , success: true });
+      .json({ message: "Posts fetched successfully", posts, success: true });
   } catch (error) {
     console.log(error);
   }
@@ -76,7 +84,11 @@ export const getUserPost = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "User Posts fetched successfully", posts , success: true });
+      .json({
+        message: "User Posts fetched successfully",
+        posts,
+        success: true,
+      });
   } catch (error) {
     console.log(error);
   }
@@ -93,7 +105,9 @@ export const likePost = async (req, res) => {
     await post.updateOne({ $addToSet: { likes: LikeKarneWaleKiID } });
     await post.save();
 
-    res.status(200).json({ message: "Like added successfully", post , success: true });
+    res
+      .status(200)
+      .json({ message: "Like added successfully", post, success: true });
   } catch (error) {
     console.log(error);
   }
@@ -110,7 +124,9 @@ export const dislikePost = async (req, res) => {
     await post.updateOne({ $pull: { likes: LikeKarneWaleKiID } });
     await post.save();
 
-    res.status(200).json({ message: "DisLike added successfully", post , success: true });
+    res
+      .status(200)
+      .json({ message: "DisLike added successfully", post, success: true });
   } catch (error) {
     console.log(error);
   }
@@ -130,16 +146,19 @@ export const addComment = async (req, res) => {
       text,
       author: CommentKarneWaleKiID,
       post: postId,
-    })
+    });
 
-    await comment.populate({ path: "author", select: "username  profilePicture" })
+    await comment.populate({
+      path: "author",
+      select: "username  profilePicture",
+    });
 
     post.comments.push(comment._id);
     await post.save();
 
     return res
       .status(201)
-      .json({ message: "Comment added successfully", comment , success: true });
+      .json({ message: "Comment added successfully", comment, success: true });
   } catch (error) {
     console.log(error);
   }
@@ -160,7 +179,11 @@ export const getCommentsOfPost = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: "Comments fetched successfully", comments , success: true });
+      .json({
+        message: "Comments fetched successfully",
+        comments,
+        success: true,
+      });
   } catch (error) {
     console.log(error);
   }
@@ -190,7 +213,9 @@ export const deletePost = async (req, res) => {
     //  delete all comments associated with the post
     await Comment.deleteMany({ post: postId });
 
-    return res.status(200).json({ message: "Post deleted successfully" , success: true });
+    return res
+      .status(200)
+      .json({ message: "Post deleted successfully", success: true });
   } catch (error) {
     console.log(error);
   }
@@ -213,7 +238,11 @@ export const bookmarkPost = async (req, res) => {
       await user.save();
       return res
         .status(200)
-        .json({ message: "Post unbookmarked successfully", type: "unsaved" , success : true });
+        .json({
+          message: "Post unbookmarked successfully",
+          type: "unsaved",
+          success: true,
+        });
     } else {
       await user.updateOne({ $addToSet: { bookmarks: post._id } });
       await user.save();

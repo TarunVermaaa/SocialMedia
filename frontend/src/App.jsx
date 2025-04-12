@@ -21,7 +21,7 @@ function App() {
           element: <Profile />,
         },
         {
-          path: "/edit-profile",
+          path: "/account/edit",
           element: <EditProfile />,
         },
       ],

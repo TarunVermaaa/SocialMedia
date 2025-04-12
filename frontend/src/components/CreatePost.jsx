@@ -17,10 +17,10 @@ const CreatePost = ({ open, setOpen }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const {user} = useSelector(store => store.auth)
-  const {posts} = useSelector(store => store.post)  
+  const { user } = useSelector((store) => store.auth);
+  const { posts } = useSelector((store) => store.post);
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const createPostHandler = async (e) => {
     const formData = new FormData();
@@ -42,7 +42,7 @@ const CreatePost = ({ open, setOpen }) => {
       );
 
       if (response.data.success) {
-        dispatch(setPosts([response.data.post, ...posts ]));
+        dispatch(setPosts([response.data.post, ...posts]));
         toast.success(response.data.message);
         setOpen(false);
         setCaption("");

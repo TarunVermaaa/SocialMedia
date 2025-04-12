@@ -1,7 +1,7 @@
 import useGetUserProfile from "@/hooks/useGetUserProfile";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Grid3x3, LayoutGrid, MessageCircle, Heart } from "lucide-react";
@@ -13,11 +13,11 @@ const Profile = () => {
   const userId = params.id;
   useGetUserProfile(userId);
 
-  const { userProfile } = useSelector((store) => store.auth);
+  const { userProfile , user } = useSelector((store) => store.auth);
   const [activeTab, setActiveTab] = useState("posts");
 
-  const isLoggedInUser = true;
-  const isFollowing = true;
+  const isLoggedInUser = user?._id === userProfile?._id
+  const isFollowing = false;
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -49,12 +49,14 @@ const Profile = () => {
             <h1 className="text-2xl font-light">{userProfile?.username}</h1>
             {isLoggedInUser ? (
               <>
-                <Button
-                  variant="secondary"
-                  className="!bg-white text-black px-4 mt-3 !py-2 rounded-lg"
-                >
-                  Edit Profile
-                </Button>
+                <Link to="/account/edit">
+                  <Button
+                    variant="secondary"
+                    className="!bg-white text-black px-4 mt-3 !py-2 rounded-lg"
+                  >
+                    Edit Profile
+                  </Button>
+                </Link>
                 <Button
                   variant="secondary"
                   className="!px-4 !py-1.5 !bg-white !text-black  mt-3  rounded-lg"
@@ -181,7 +183,7 @@ const Profile = () => {
             <img
               src={post.image}
               alt={`Post ${post._id}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover rounded-lg"
             />
             <div className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/40 ">
               <div className="flex items-center gap-4 text-white">
