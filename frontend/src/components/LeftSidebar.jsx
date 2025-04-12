@@ -47,6 +47,9 @@ const LeftSidebar = () => {
     if( textType === 'Profile'){
       navigate(`/profile/${user?._id}`)
     }
+    if( textType === 'Messages'){
+      navigate('/chat')
+    }
   };
 
   const sideBarItems = [
