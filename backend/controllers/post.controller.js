@@ -34,21 +34,13 @@ export const addNewPost = async (req, res) => {
       await user.save();
     }
 
-    // Get the complete post data with author and timestamps
-    const completePost = await Post.findById(post._id)
-      .populate({ path: "author", select: "-password" })
-      .lean();
+    await post.populate({ path: "author", select: "-password" });
 
     res
       .status(201)
-      .json({
-        success: true,
-        message: "Post created successfully",
-        post: completePost,
-      });
+      .json({ success: true, message: "Post created successfully", post });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Error creating post" });
   }
 };
 
