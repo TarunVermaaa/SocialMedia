@@ -3,6 +3,7 @@ import Cloudinary from "../utils/cloudinary.js";
 import { Post } from "../models/post.model.js";
 import { User } from "../models/user.model.js";
 import { Comment } from "../models/comment.model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const addNewPost = async (req, res) => {
   try {
@@ -74,13 +75,11 @@ export const getUserPost = async (req, res) => {
         populate: { path: "author", select: "username  profilePicture" },
       });
 
-    return res
-      .status(200)
-      .json({
-        message: "User Posts fetched successfully",
-        posts,
-        success: true,
-      });
+    return res.status(200).json({
+      message: "User Posts fetched successfully",
+      posts,
+      success: true,
+    });
   } catch (error) {
     console.log(error);
   }
@@ -96,6 +95,23 @@ export const likePost = async (req, res) => {
     // Like logic here
     await post.updateOne({ $addToSet: { likes: LikeKarneWaleKiID } });
     await post.save();
+
+    // implement socket io for real time liking
+    const user = await User.findById(LikeKarneWaleKiID).select(
+      "username profilePicture"
+    );
+    const postOwnerId = post.author.toString();
+    if (postOwnerId !== LikeKarneWaleKiID) {
+       const notification = {
+        type : "like",
+        userId : LikeKarneWaleKiID,
+        userDetails : user,
+        postId , 
+        message : `${user.username} liked your post`
+       }
+       const postOwnerSocketId = getReceiverSocketId(postOwnerId);
+       io.to(postOwnerSocketId).emit("notification" ,  notification)
+    }
 
     res
       .status(200)
@@ -115,6 +131,23 @@ export const dislikePost = async (req, res) => {
     // Like logic here
     await post.updateOne({ $pull: { likes: LikeKarneWaleKiID } });
     await post.save();
+
+      // implement socket io for real time liking
+      const user = await User.findById(LikeKarneWaleKiID).select(
+        "username profilePicture"
+      );
+      const postOwnerId = post.author.toString();
+      if (postOwnerId !== LikeKarneWaleKiID) {
+         const notification = {
+          type : "dislike",
+          userId : LikeKarneWaleKiID,
+          userDetails : user,
+          postId , 
+          message : `${user.username} disliked your post`
+         }
+         const postOwnerSocketId = getReceiverSocketId(postOwnerId);
+         io.to(postOwnerSocketId).emit("notification" ,  notification)
+      }
 
     res
       .status(200)
@@ -169,13 +202,11 @@ export const getCommentsOfPost = async (req, res) => {
         .status(404)
         .json({ message: "No comments found for this post" });
 
-    return res
-      .status(200)
-      .json({
-        message: "Comments fetched successfully",
-        comments,
-        success: true,
-      });
+    return res.status(200).json({
+      message: "Comments fetched successfully",
+      comments,
+      success: true,
+    });
   } catch (error) {
     console.log(error);
   }
@@ -228,13 +259,11 @@ export const bookmarkPost = async (req, res) => {
     if (user.bookmarks.includes(post._id)) {
       await user.updateOne({ $pull: { bookmarks: post._id } });
       await user.save();
-      return res
-        .status(200)
-        .json({
-          message: "Post unbookmarked successfully",
-          type: "unsaved",
-          success: true,
-        });
+      return res.status(200).json({
+        message: "Post unbookmarked successfully",
+        type: "unsaved",
+        success: true,
+      });
     } else {
       await user.updateOne({ $addToSet: { bookmarks: post._id } });
       await user.save();

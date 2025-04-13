@@ -1,19 +1,26 @@
-import { createSlice } from '@reduxjs/toolkit'
-
+import { createSlice } from "@reduxjs/toolkit";
 
 const chatSlice = createSlice({
-  name: 'chat',
-  initialState : {
+  name: "chat",
+  initialState: {
     onlineUsers: [],
-    
+    messagesMap: {},
   },
   reducers: {
     setOnlineUsers: (state, action) => {
-      state.onlineUsers = action.payload
-    }
-  }
-})
+      state.onlineUsers = action.payload;
+    },
+    setMessages: (state, action) => {
+      const { userId, messages } = action.payload;
 
-export const { setOnlineUsers } = chatSlice.actions
-export default chatSlice.reducer
+      if (!state.messagesMap) state.messagesMap = {};
 
+      if (userId && messages) {
+        state.messagesMap[userId] = messages;
+      }
+    },
+  },
+});
+
+export const { setOnlineUsers, setMessages } = chatSlice.actions;
+export default chatSlice.reducer;

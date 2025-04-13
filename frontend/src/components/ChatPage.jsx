@@ -1,49 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { setSelectedUser } from "@/redux/authSlice";
 import { MessageCircleCode } from "lucide-react";
 import Messages from "./Messages";
-
-const sampleChats = [
-  {
-    id: 1,
-    username: "alice",
-    avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-    preview: "Hey, how are you?",
-    lastMessageTime: "2h",
-  },
-  {
-    id: 2,
-    username: "bob",
-    avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    preview: "Let's catch up tomorrow!",
-    lastMessageTime: "1d",
-  },
-  {
-    id: 3,
-    username: "charlie",
-    avatar: "https://randomuser.me/api/portraits/men/3.jpg",
-    preview: "Did you watch the game?",
-    lastMessageTime: "3h",
-  },
-];
+import axios from "axios";
+import { setMessages } from "@/redux/chatSlice";
+import useGetAllMessage from "@/hooks/useGetAllMessage";
 
 const ChatPage = () => {
+  useGetAllMessage();
   const { user, suggestedUsers, selectedUser } = useSelector(
     (store) => store.auth
   );
   const [selectedChat, setSelectedChat] = useState(suggestedUsers[0] || null);
-  const [message, setMessage] = useState("");
-  const { onlineUsers } = useSelector((store) => store.chat);
+  const { onlineUsers, messagesMap } = useSelector((store) => store.chat);
+  const [textMessage, setTextMessage] = useState("");
 
   const dispatch = useDispatch();
 
-  const sendMessageHandler = (e) => {
-    e.preventDefault();
-    console.log("Sending message:", message);
-    setMessage("");
+  const currentMessages = messagesMap[selectedUser?._id] || [];
+
+  const sendMessageHandler = async (receiverId) => {
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/api/v1/message/send/${receiverId}`,
+        {
+          message: textMessage,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (res.data.success) {
+        dispatch(
+          setMessages({
+            userId: receiverId,
+            messages: [...currentMessages, res.data.newMessage],
+          })
+        );
+        setTextMessage("");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -54,7 +57,6 @@ const ChatPage = () => {
           <h2 className="text-2xl font-bold mb-6">Chats</h2>
           {suggestedUsers && suggestedUsers.length > 0 ? (
             suggestedUsers.map((suggestedUser) => {
-
               const isOnline = onlineUsers.includes(suggestedUser._id);
 
               return (
@@ -127,15 +129,24 @@ const ChatPage = () => {
 
           {/* Message Input */}
           <div className="p-4 border-t border-gray-300">
-            <form onSubmit={sendMessageHandler} className="flex gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+              className="flex gap-2"
+            >
               <input
                 type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                value={textMessage}
+                onChange={(e) => setTextMessage(e.target.value)}
                 placeholder="Type a message..."
                 className="flex-1 border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <Button type="submit" className="bg-black text-white px-5">
+              <Button
+                onClick={() => sendMessageHandler(selectedUser?._id)}
+                type="submit"
+                className="bg-black text-white px-5"
+              >
                 Send
               </Button>
             </form>
