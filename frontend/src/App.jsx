@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSocket } from "./redux/socketSlice";
 import { setOnlineUsers } from "./redux/chatSlice";
-import { setLikeNotification } from "./redux/rtnSlice";
+import { setCommentNotification, setLikeNotification } from "./redux/rtnSlice";
 import ProtectedRoutes from "./components/ProtectedRoutes";
 
 function App() {
@@ -34,8 +34,14 @@ function App() {
       });
 
       socketio.on("notification", (notification) => {
+        if(notification.type === "like" || notification.type === "dislike"){
         dispatch(setLikeNotification(notification));
-      });
+      } else if (notification.type === "comment") {
+        dispatch(setCommentNotification(notification))
+        console.log("notification recieved :" , notification)
+      }  } )
+
+    
 
       return () => {
         socketio.close();

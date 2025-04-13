@@ -27,6 +27,7 @@ const Post = ({ post }) => {
   const [commentCount, setCommentCount] = useState(post?.comments?.length || 0);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { posts } = useSelector((store) => store.post);
   const { user } = useSelector((store) => store.auth);
@@ -122,6 +123,7 @@ const Post = ({ post }) => {
 
   const postDeleteHandler = async () => {
     try {
+      setDeleting(true);
       const response = await axios.delete(
         `http://localhost:8000/api/v1/post/delete/${post._id}`,
         { withCredentials: true }
@@ -137,6 +139,10 @@ const Post = ({ post }) => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Post deletion failed");
       console.log("Post deletion failed", error);
+    } finally {
+      setTimeout(() => {
+        setDeleting(false);
+      }, 500);
     }
   };
 
@@ -187,11 +193,12 @@ const Post = ({ post }) => {
               )}
               {user && user._id === post?.author?._id && (
                 <Button
+                  disabled={deleting}
                   onClick={postDeleteHandler}
                   variant="ghost"
                   className="w-full !bg-white text-red-600 hover:!bg-red-600 hover:text-white font-bold py-2"
                 >
-                  Delete
+                  {deleting ? "Deleting..." : "Delete"}
                 </Button>
               )}
             </div>

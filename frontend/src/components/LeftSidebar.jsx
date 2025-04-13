@@ -22,14 +22,20 @@ import { motion, AnimatePresence } from "framer-motion";
 const LeftSidebar = () => {
   const navigate = useNavigate();
   const { user } = useSelector((store) => store.auth);
-  const { likeNotification } = useSelector(
+  const { likeNotification, commentNotification } = useSelector(
     (store) => store.realTimeNotification
   );
   const dispatch = useDispatch();
 
+  console.log("like notification:", likeNotification);
+  console.log("comment Notification:", commentNotification);
+
   const [open, setOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Home");
+
+  const totalNotifications =
+    likeNotification.length + commentNotification.length;
 
   const logoutHandler = async () => {
     try {
@@ -102,7 +108,8 @@ const LeftSidebar = () => {
               onClick={() => {
                 if (
                   item.text === "Notifications" &&
-                  likeNotification.length > 0
+                  (likeNotification.length > 0 ||
+                    commentNotification.length > 0)
                 ) {
                   setNotificationOpen(!notificationOpen);
                 } else {
@@ -138,7 +145,7 @@ const LeftSidebar = () => {
                   {item.Icon}
                 </motion.span>
                 {item.text === "Notifications" &&
-                  likeNotification.length > 0 && (
+                  totalNotifications > 0 && (
                     <div className="absolute -top-2 -right-2">
                       <Popover
                         open={notificationOpen}
@@ -153,7 +160,7 @@ const LeftSidebar = () => {
                               setNotificationOpen(!notificationOpen);
                             }}
                           >
-                            {likeNotification.length}
+                            {totalNotifications}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-96">
@@ -161,15 +168,15 @@ const LeftSidebar = () => {
                             <h3 className="font-semibold text-lg mb-2">
                               Notifications
                             </h3>
-                            {likeNotification.length === 0 ? (
+                            {totalNotifications === 0 ? (
                               <p className="text-gray-500">
                                 No new notifications
                               </p>
                             ) : (
-                              likeNotification.map((notification) => {
-                                return (
+                              <>
+                                {likeNotification.map((notification) => (
                                   <div
-                                    key={notification.userId}
+                                    key={`like-${notification.userId}-${notification.postId}`}
                                     className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md"
                                   >
                                     <Avatar className="h-8 w-8">
@@ -185,7 +192,6 @@ const LeftSidebar = () => {
                                           .toUpperCase()}
                                       </AvatarFallback>
                                     </Avatar>
-
                                     <p className="text-sm">
                                       <span className="font-semibold">
                                         {notification.userDetails.username}{" "}
@@ -193,8 +199,35 @@ const LeftSidebar = () => {
                                       liked your post
                                     </p>
                                   </div>
-                                );
-                              })
+                                ))}
+
+                                {commentNotification.map((notification) => (
+                                  <div
+                                    key={`comment-${notification.userId}-${notification.commentId}`}
+                                    className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md"
+                                  >
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarImage
+                                        src={
+                                          notification.userDetails
+                                            ?.profilePicture
+                                        }
+                                      />
+                                      <AvatarFallback>
+                                        {notification.userDetails.username
+                                          .charAt(0)
+                                          .toUpperCase()}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <p className="text-sm">
+                                      <span className="font-semibold">
+                                        {notification.userDetails.username}{" "}
+                                      </span>
+                                      commented: "{notification.commentText}"
+                                    </p>
+                                  </div>
+                                ))}
+                              </>
                             )}
                           </div>
                         </PopoverContent>

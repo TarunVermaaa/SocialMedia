@@ -14,6 +14,7 @@ const Signup = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  
 
   const { user} = useSelector(store => store.auth)
 
@@ -104,7 +105,7 @@ const Signup = () => {
           <Input
             type="password"
             name="password"
-            value={input.password}
+            value = {input.password}
             onChange={changeEventHandler}
             className="focus-visible:ring-transparent my-2"
           />

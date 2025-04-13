@@ -181,6 +181,29 @@ export const addComment = async (req, res) => {
     post.comments.push(comment._id);
     await post.save();
 
+    // logic for real time notification with socket 
+
+    const user = await User.findById(CommentKarneWaleKiID).select("username profilePicture")
+
+    const postOwnerId = post.author.toString()
+    if(postOwnerId !== CommentKarneWaleKiID){
+      const notification = {
+        type: "comment" , 
+        userId: CommentKarneWaleKiID,
+        userDetails: user ,
+        postId , 
+        commentText: comment.text,
+        message: `${user?.username} commented ${comment.text} on your post`
+      }
+
+      
+      const postOwnerSocketId = getReceiverSocketId(postOwnerId)
+      io.to(postOwnerSocketId).emit("notification" , notification)
+
+      console.log("comment notification sent :" , notification )
+      console.log("post owner socket Id:" , postOwnerSocketId)
+    }
+
     return res
       .status(201)
       .json({ message: "Comment added successfully", comment, success: true });
