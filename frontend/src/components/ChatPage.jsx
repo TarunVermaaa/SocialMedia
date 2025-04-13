@@ -8,6 +8,7 @@ import Messages from "./Messages";
 import axios from "axios";
 import { setMessages } from "@/redux/chatSlice";
 import useGetAllMessage from "@/hooks/useGetAllMessage";
+import { FaPaperPlane } from "react-icons/fa";
 
 const ChatPage = () => {
   useGetAllMessage();
@@ -48,6 +49,10 @@ const ChatPage = () => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    dispatch(setSelectedUser(null));
+  }, []);
 
   return (
     <div className="flex  h-screen overflow-hidden -ml-[46%]">
@@ -145,9 +150,9 @@ const ChatPage = () => {
               <Button
                 onClick={() => sendMessageHandler(selectedUser?._id)}
                 type="submit"
-                className="bg-black text-white px-5"
+                className="!bg-white !border-none text-white px-5"
               >
-                Send
+                <FaPaperPlane className="text-gray-900 !border-none  hover:!text-black " />
               </Button>
             </form>
           </div>

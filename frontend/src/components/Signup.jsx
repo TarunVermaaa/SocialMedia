@@ -1,11 +1,11 @@
 import { Label } from "@radix-ui/react-label";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import axios from "axios";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
-
+import { useSelector } from "react-redux";
 const Signup = () => {
   const [input, setInput] = useState({
     username: "",
@@ -14,6 +14,8 @@ const Signup = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  const { user} = useSelector(store => store.auth)
 
   const navigate = useNavigate();
 
@@ -54,6 +56,13 @@ const Signup = () => {
     }
   };
 
+  useEffect(()=> {
+    if(user) {
+      navigate("/")
+    }
+  } , [])
+
+
   return (
     <div className="flex items-center w-screen h-screen justify-center">
       <form
@@ -61,7 +70,11 @@ const Signup = () => {
         className="shadow-lg flex flex-col gap-5 p-8"
       >
         <div className="my-4">
-          <h2 className="text-center font-bold text-xl">LOGO</h2>
+        <img
+            className="w-50  object-cover mx-auto"
+            src="https://res.cloudinary.com/drnifvnkf/image/upload/v1744544999/ikhdpbwenz6mukljxf2r.jpg"
+            alt="logo"
+          />
           <p className="text-sm text-center">
             Sign up to see photos and videos from your friends.
           </p>
@@ -96,7 +109,7 @@ const Signup = () => {
             className="focus-visible:ring-transparent my-2"
           />
         </div>
-        <Button type="submit">Signup</Button>
+        <Button className="!bg-blue-800 text-white" type="submit">Signup</Button>
         <span className="text-center">Already have an account? <Link to='/login' className="text-blue-200" >Login </Link></span>
       </form>
     </div>

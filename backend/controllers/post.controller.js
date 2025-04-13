@@ -102,15 +102,15 @@ export const likePost = async (req, res) => {
     );
     const postOwnerId = post.author.toString();
     if (postOwnerId !== LikeKarneWaleKiID) {
-       const notification = {
-        type : "like",
-        userId : LikeKarneWaleKiID,
-        userDetails : user,
-        postId , 
-        message : `${user.username} liked your post`
-       }
-       const postOwnerSocketId = getReceiverSocketId(postOwnerId);
-       io.to(postOwnerSocketId).emit("notification" ,  notification)
+      const notification = {
+        type: "like",
+        userId: LikeKarneWaleKiID,
+        userDetails: user,
+        postId,
+        message: `${user.username} liked your post`,
+      };
+      const postOwnerSocketId = getReceiverSocketId(postOwnerId);
+      io.to(postOwnerSocketId).emit("notification", notification);
     }
 
     res
@@ -132,22 +132,22 @@ export const dislikePost = async (req, res) => {
     await post.updateOne({ $pull: { likes: LikeKarneWaleKiID } });
     await post.save();
 
-      // implement socket io for real time liking
-      const user = await User.findById(LikeKarneWaleKiID).select(
-        "username profilePicture"
-      );
-      const postOwnerId = post.author.toString();
-      if (postOwnerId !== LikeKarneWaleKiID) {
-         const notification = {
-          type : "dislike",
-          userId : LikeKarneWaleKiID,
-          userDetails : user,
-          postId , 
-          message : `${user.username} disliked your post`
-         }
-         const postOwnerSocketId = getReceiverSocketId(postOwnerId);
-         io.to(postOwnerSocketId).emit("notification" ,  notification)
-      }
+    // implement socket io for real time liking
+    const user = await User.findById(LikeKarneWaleKiID).select(
+      "username profilePicture"
+    );
+    const postOwnerId = post.author.toString();
+    if (postOwnerId !== LikeKarneWaleKiID) {
+      const notification = {
+        type: "dislike",
+        userId: LikeKarneWaleKiID,
+        userDetails: user,
+        postId,
+        message: `${user.username} disliked your post`,
+      };
+      const postOwnerSocketId = getReceiverSocketId(postOwnerId);
+      io.to(postOwnerSocketId).emit("notification", notification);
+    }
 
     res
       .status(200)
@@ -269,7 +269,11 @@ export const bookmarkPost = async (req, res) => {
       await user.save();
       return res
         .status(200)
-        .json({ message: "Post bookmarked successfully", type: "saved" });
+        .json({
+          message: "Post bookmarked successfully",
+          success: true,
+          type: "saved",
+        });
     }
   } catch (error) {
     console.log(error);

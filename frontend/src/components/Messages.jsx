@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useGetAllMessage from "@/hooks/useGetAllMessage";
 import useGetRTM from "@/hooks/useGetRTM";
@@ -25,29 +25,43 @@ const Messages = ({ selectedUser }) => {
     scrollToBottom();
   }, [currentMessages]);
 
+  // Check if user is authenticated
+  if (!user) { 
+    return <Navigate to="/login" />;
+  }
+
+  // Check if selectedUser exists
+  if (!selectedUser) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">Select a user to start chatting</p>
+      </div>
+    );
+  }
+
   // Animation variants for message bubbles
   const messageVariants = {
-    hidden: {
-      opacity: 0,
+    hidden: { 
+      opacity: 0, 
       y: 20,
-      scale: 0.95,
+      scale: 0.95
     },
-    visible: {
-      opacity: 1,
+    visible: { 
+      opacity: 1, 
       y: 0,
       scale: 1,
       transition: {
         type: "spring",
         stiffness: 300,
         damping: 20,
-        duration: 0.3,
-      },
+        duration: 0.3
+      }
     },
-    exit: {
+    exit: { 
       opacity: 0,
       scale: 0.9,
-      transition: { duration: 0.2 },
-    },
+      transition: { duration: 0.2 }
+    }
   };
 
   return (
@@ -67,13 +81,13 @@ const Messages = ({ selectedUser }) => {
 
       <div className="flex justify-center mb-6">
         <div className="flex flex-col items-center">
-          <Avatar className="w-20 h-20 mb-2">
+          <Avatar className="w-20 h-20 ">
             <AvatarImage
               className="rounded-full"
               src={selectedUser?.profilePicture}
               alt="profile"
             />
-            <AvatarFallback>
+            <AvatarFallback className=" !w-24 !h-24 rounded-full ml-6 !mt-5 text-4xl">
               {selectedUser?.username?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>

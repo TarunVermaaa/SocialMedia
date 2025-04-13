@@ -1,11 +1,11 @@
 import { Label } from "@radix-ui/react-label";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import axios from "axios";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setAuthUser } from "@/redux/authSlice";
 
 const Login = () => {
@@ -16,7 +16,9 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+
+  const { user } = useSelector((store) => store.auth);
 
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
@@ -40,8 +42,8 @@ const Login = () => {
 
       if (res.data.success) {
         // Save user data to Redux store
-        dispatch(setAuthUser(res.data.user))
-        
+        dispatch(setAuthUser(res.data.user));
+
         navigate("/");
         toast.success(res.data.message);
         setInput({
@@ -57,6 +59,12 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, []);
+
   return (
     <div className="flex items-center w-screen h-screen justify-center">
       <form
@@ -64,7 +72,11 @@ const Login = () => {
         className="shadow-lg flex flex-col gap-5 p-8"
       >
         <div className="my-4">
-          <h2 className="text-center font-bold text-xl">LOGO</h2>
+          <img
+            className="w-50  object-cover mx-auto"
+            src="https://res.cloudinary.com/drnifvnkf/image/upload/v1744544999/ikhdpbwenz6mukljxf2r.jpg"
+            alt="logo"
+          />
           <p className="text-sm text-center">
             Login to see photos and videos from your friends.
           </p>
@@ -89,7 +101,7 @@ const Login = () => {
             className="focus-visible:ring-transparent my-2"
           />
         </div>
-        <Button type="submit" disabled={loading}>
+        <Button className="!bg-blue-800 text-white" type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
         <span className="text-center">

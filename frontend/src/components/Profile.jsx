@@ -1,23 +1,27 @@
 import useGetUserProfile from "@/hooks/useGetUserProfile";
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Grid3x3, LayoutGrid, MessageCircle, Heart } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { toast } from "sonner";
+import { setUserProfile } from "@/redux/authSlice";
 
 const Profile = () => {
   const params = useParams();
   const userId = params.id;
+  const dispatch = useDispatch();
   useGetUserProfile(userId);
 
-  const { userProfile , user } = useSelector((store) => store.auth);
+  const { userProfile, user } = useSelector((store) => store.auth);
   const [activeTab, setActiveTab] = useState("posts");
+  const [isFollowing, setIsFollowing] = useState(false);
 
-  const isLoggedInUser = user?._id === userProfile?._id
-  const isFollowing = false;
+  const isLoggedInUser = user?._id === userProfile?._id;
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -26,11 +30,46 @@ const Profile = () => {
   const displayedPost =
     activeTab === "posts" ? userProfile?.posts : userProfile?.bookmarks;
 
+  // Function to refresh user profile data
+  const refreshUserProfile = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8000/api/v1/user/${userId}/profile`,
+        { withCredentials: true }
+      );
+      if (res.data.success) {
+        dispatch(setUserProfile(res.data.user));
+      }
+    } catch (error) {
+      console.log("Error refreshing profile:", error);
+    }
+  };
+
+  const followHandler = async () => {
+    try {
+      const res = await axios.post(
+        `http://localhost:8000/api/v1/user/followorunfollow/${userProfile?._id}`,
+        {},
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setIsFollowing(!isFollowing);
+        // Refresh user profile data using the separate function
+        refreshUserProfile();
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.response?.data?.message || "Something went wrong");
+    }
+  };
+
   return (
     <div
-      className={`max-w-4xl -ml-37 mt-8 px-4 ${
-        activeTab === "saved" ? "!-ml-20" : ""
-      } `}
+      className={`w-full max-w-4xl mx-auto mt-8 px-4 ${
+        activeTab === "posts" ? "-ml-15" : ""
+      }   `}
     >
       {/* Profile Header */}
       <div className="flex items-center gap-8">
@@ -69,6 +108,7 @@ const Profile = () => {
                 <Button
                   variant="secondary"
                   className="!bg-gray-100 text-black  mt-4 !py-2 rounded-lg"
+                  onClick={followHandler}
                 >
                   Unfollow
                 </Button>
@@ -80,7 +120,10 @@ const Profile = () => {
                 </Button>
               </>
             ) : (
-              <Button className="!bg-[#0095F6] text-white px-4  mt-4 !py-2 rounded-lg">
+              <Button
+                className="!bg-[#0095F6] text-white px-4  mt-4 !py-2 rounded-lg"
+                onClick={followHandler}
+              >
                 Follow
               </Button>
             )}
@@ -89,19 +132,19 @@ const Profile = () => {
           <div className="flex gap-8 mb-4">
             <div className="flex items-center gap-1">
               <span className="font-semibold">
-                {userProfile?.posts?.length}
+                {userProfile?.posts?.length || 0}
               </span>
               <span className="text-gray-600 ">posts</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="font-semibold">
-                {userProfile?.followers?.length}
+                {userProfile?.followers?.length || 0}
               </span>
               <span className="text-gray-600">followers</span>
             </div>
             <div className="flex items-center gap-1">
               <span className="font-semibold">
-                {userProfile?.following?.length}
+                {userProfile?.following?.length || 0}
               </span>
               <span className="text-gray-600">following</span>
             </div>
@@ -158,46 +201,58 @@ const Profile = () => {
       </div>
 
       {/* Posts Grid with Framer Motion */}
-      <motion.div
-        className="grid grid-cols-3 gap-1 mb-8"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: {},
-          visible: {
-            transition: {
-              staggerChildren: 0.1,
+      <div className="min-h-[400px]">
+        <motion.div
+          className="grid grid-cols-3 gap-1 mb-8"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: 0.1,
+              },
             },
-          },
-        }}
-      >
-        {displayedPost?.map((post) => (
-          <motion.div
-            key={post._id}
-            className="group relative aspect-square cursor-pointer"
-            initial={{ opacity: 0, y: -20 }} // 👈 upar se aaye
-            animate={{ opacity: 1, y: 0 }} // 👈 neeche aaye smoothly
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <img
-              src={post.image}
-              alt={`Post ${post._id}`}
-              className="w-full h-full object-cover rounded-lg"
-            />
-            <div className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/40 ">
-              <div className="flex items-center gap-4 text-white">
-                <span className="flex items-center gap-1">
-                  <Heart className="w-5 h-5" /> {post.likes.length}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageCircle className="w-5 h-5" /> {post.comments.length}
-                </span>
-              </div>
+          }}
+        >
+          {displayedPost?.length > 0 ? (
+            displayedPost.map((post) => (
+              <motion.div
+                key={post._id}
+                className="group relative aspect-square cursor-pointer"
+                initial={{ opacity: 0, y: -20 }} // 👈 upar se aaye
+                animate={{ opacity: 1, y: 0 }} // 👈 neeche aaye smoothly
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                <img
+                  src={post.image}
+                  alt={`Post ${post._id}`}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+                <div className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/40 ">
+                  <div className="flex items-center gap-4 text-white">
+                    <span className="flex items-center gap-1">
+                      <Heart className="w-5 h-5" /> {post.likes.length}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageCircle className="w-5 h-5" />{" "}
+                      {post.comments.length}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          ) : (
+            <div className="col-span-3 flex flex-col items-center justify-center py-12 text-gray-500">
+              <p className="text-lg font-medium mb-2">No {activeTab} yet</p>
+              <p className="text-sm">
+                When you have {activeTab}, they'll appear here
+              </p>
             </div>
-          </motion.div>
-        ))}
-      </motion.div>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 };
