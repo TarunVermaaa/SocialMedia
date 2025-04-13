@@ -13,8 +13,10 @@ import { setSocket } from "./redux/socketSlice";
 import { setOnlineUsers } from "./redux/chatSlice";
 import { setCommentNotification, setLikeNotification } from "./redux/rtnSlice";
 import ProtectedRoutes from "./components/ProtectedRoutes";
+import useGetRTM from "./hooks/useGetRTM";
 
 function App() {
+  useGetRTM();
   const { user } = useSelector((store) => store.auth);
   const { socket } = useSelector((store) => store.socketio);
   const dispatch = useDispatch();
@@ -34,17 +36,16 @@ function App() {
       });
 
       socketio.on("notification", (notification) => {
-        if(notification.type === "like" || notification.type === "dislike"){
-        dispatch(setLikeNotification(notification));
-      } else if (notification.type === "comment") {
-        dispatch(setCommentNotification(notification))
-        console.log("notification recieved :" , notification)
-      }  } )
-
-    
+        if (notification.type === "like" || notification.type === "dislike") {
+          dispatch(setLikeNotification(notification));
+        } else if (notification.type === "comment") {
+          dispatch(setCommentNotification(notification));
+          console.log("notification recieved :", notification);
+        }
+      });
 
       return () => {
-        socketio.close();
+        socketio.disconnect();
         dispatch(setSocket(null));
       };
     } else if (socket) {
@@ -56,23 +57,43 @@ function App() {
   const browserRouter = createBrowserRouter([
     {
       path: "/",
-      element: <ProtectedRoutes><MainLayout /></ProtectedRoutes>,
+      element: (
+        <ProtectedRoutes>
+          <MainLayout />
+        </ProtectedRoutes>
+      ),
       children: [
         {
           path: "/",
-          element:  <ProtectedRoutes><Home /></ProtectedRoutes>,
+          element: (
+            <ProtectedRoutes>
+              <Home />
+            </ProtectedRoutes>
+          ),
         },
         {
           path: "/profile/:id",
-          element: <ProtectedRoutes><Profile /></ProtectedRoutes>,
+          element: (
+            <ProtectedRoutes>
+              <Profile />
+            </ProtectedRoutes>
+          ),
         },
         {
           path: "/account/edit",
-          element: <ProtectedRoutes><EditProfile /></ProtectedRoutes>,
+          element: (
+            <ProtectedRoutes>
+              <EditProfile />
+            </ProtectedRoutes>
+          ),
         },
         {
           path: "/chat",
-          element: <ProtectedRoutes><ChatPage /></ProtectedRoutes>,
+          element: (
+            <ProtectedRoutes>
+              <ChatPage />
+            </ProtectedRoutes>
+          ),
         },
       ],
     },

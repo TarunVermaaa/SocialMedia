@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { setSelectedUser } from "@/redux/authSlice";
-import { MessageCircleCode, Image as ImageIcon, X } from "lucide-react";
+import { MessageCircleCode, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import Messages from "./Messages";
 import axios from "axios";
 import { setMessages } from "@/redux/chatSlice";
@@ -86,9 +86,7 @@ const ChatPage = () => {
     }
   };
 
-  useEffect(() => {
-    dispatch(setSelectedUser(null));
-  }, []);
+
 
   return (
     <div className="flex  h-screen overflow-hidden -ml-[46%]">
@@ -203,10 +201,14 @@ const ChatPage = () => {
 
               <Button
                 onClick={() => sendMessageHandler(selectedUser._id)}
-                disabled={!textMessage && !selectedImage}
+                disabled={!textMessage && !selectedImage || isLoading}
                 className="rounded-full cursor-pointer !bg-white text-black hover:bg-blue-600"
               >
-                <FaPaperPlane className="h-8 w-12 -mr-2" />
+                {isLoading ? (
+                  <Loader2 className="h-8 w-12 -mr-2 animate-spin" />
+                ) : (
+                  <FaPaperPlane className="h-8 w-12 -mr-2"  />
+                )}
               </Button>
             </form>
           </div>

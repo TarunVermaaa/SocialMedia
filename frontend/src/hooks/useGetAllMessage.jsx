@@ -14,7 +14,9 @@ const useGetAllMessage = () => {
 
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/v1/message/all/${selectedUser._id}`,
+          `http://localhost:8000/api/v1/message/all/${
+            selectedUser._id
+          }?t=${Date.now()}`,
           { withCredentials: true }
         );
 
@@ -31,6 +33,10 @@ const useGetAllMessage = () => {
       }
     };
     fetchAllMessage();
+
+    const interval = setInterval(fetchAllMessage, 15000);
+
+    return () => clearInterval(interval);
   }, [selectedUser?._id]);
 };
 
