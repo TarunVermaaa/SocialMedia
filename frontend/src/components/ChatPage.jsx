@@ -190,14 +190,7 @@ const ChatPage = () => {
                 className="hidden"
               />
 
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => fileInputRef.current.click()}
-                className="rounded-full !bg-white !border-none"
-              >
-                <ImageIcon className="h-12 w-12 ml-5" />
-              </Button>
+             
 
               <Button
                 onClick={() => sendMessageHandler(selectedUser._id)}
@@ -209,6 +202,15 @@ const ChatPage = () => {
                 ) : (
                   <FaPaperPlane className="h-8 w-12 -mr-2"  />
                 )}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current.click()}
+                className="rounded-full !bg-white !border-none"
+              >
+                <ImageIcon className="h-12 w-12 ml-5" />
               </Button>
             </form>
           </div>
