@@ -1,23 +1,75 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import useGetAllMessage from "@/hooks/useGetAllMessage";
+import useGetRTM from "@/hooks/useGetRTM";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Messages = ({ selectedUser }) => {
+  useGetRTM();
   useGetAllMessage();
 
   const { messagesMap } = useSelector((store) => store.chat);
   const currentMessages = messagesMap[selectedUser?._id] || [];
+  const { user } = useSelector((store) => store.auth);
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [currentMessages]);
+
+  // Animation variants for message bubbles
+  const messageVariants = {
+    hidden: {
+      opacity: 0,
+      y: 20,
+      scale: 0.95,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
+        duration: 0.3,
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.9,
+      transition: { duration: 0.2 },
+    },
+  };
 
   return (
-    <div className="overflow-y-auto flex-1 p-4">
-      <div className="flex justify-center">
-        <div className="flex flex-col items-center justify-center">
-          <Avatar>
+    <div
+      className="overflow-y-auto flex-1 p-4"
+      style={{
+        msOverflowStyle: "none" /* IE and Edge */,
+        scrollbarWidth: "none" /* Firefox */,
+      }}
+    >
+      {/* Hide scrollbar for Chrome, Safari and Opera */}
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+
+      <div className="flex justify-center mb-6">
+        <div className="flex flex-col items-center">
+          <Avatar className="w-20 h-20 mb-2">
             <AvatarImage
-              className="w-20 h-20 rounded-full"
+              className="rounded-full"
               src={selectedUser?.profilePicture}
               alt="profile"
             />
@@ -25,23 +77,48 @@ const Messages = ({ selectedUser }) => {
               {selectedUser?.username?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="text-lg font-semibold">
+          <span className="text-lg font-semibold mb-1">
             {selectedUser?.username}
           </span>
           <Link to={`/profile/${selectedUser?._id}`}>
             <Button
               variant="secondary"
-              className="mt-1  !bg-gray-100 !border-none hover:!bg-gray-200 !text-gray-800"
+              className="!bg-gray-100 !border-none hover:!bg-gray-200 !text-gray-800"
             >
               View Profile
             </Button>
           </Link>
         </div>
       </div>
-      <div className="flex flex-col gap-3">
-        {currentMessages.map((msg) => (
-          <div key={msg._id}>{msg.message}</div>
-        ))}
+      <div className="flex flex-col gap-4">
+        <AnimatePresence>
+          {currentMessages.map((msg) => (
+            <motion.div
+              key={msg._id}
+              className={`flex ${
+                msg.senderId === user?._id ? "justify-end" : "justify-start"
+              }`}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={messageVariants}
+              layout
+            >
+              <motion.div
+                className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
+                  msg.senderId === user?._id
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-800"
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {msg.message}
+              </motion.div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );
