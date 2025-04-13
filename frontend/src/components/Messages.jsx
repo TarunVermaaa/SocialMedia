@@ -26,7 +26,7 @@ const Messages = ({ selectedUser }) => {
   }, [currentMessages]);
 
   // Check if user is authenticated
-  if (!user) { 
+  if (!user) {
     return <Navigate to="/login" />;
   }
 
@@ -41,27 +41,27 @@ const Messages = ({ selectedUser }) => {
 
   // Animation variants for message bubbles
   const messageVariants = {
-    hidden: { 
-      opacity: 0, 
+    hidden: {
+      opacity: 0,
       y: 20,
-      scale: 0.95
+      scale: 0.95,
     },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       scale: 1,
       transition: {
         type: "spring",
         stiffness: 300,
         damping: 20,
-        duration: 0.3
-      }
+        duration: 0.3,
+      },
     },
-    exit: { 
+    exit: {
       opacity: 0,
       scale: 0.9,
-      transition: { duration: 0.2 }
-    }
+      transition: { duration: 0.2 },
+    },
   };
 
   return (
@@ -127,7 +127,23 @@ const Messages = ({ selectedUser }) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {msg.message}
+                {/* for Text Message */}
+                {msg.messageType === "text" && msg.message}
+
+                {/* for Image Message */}
+                {msg.messageType === "image" && (
+                  <div className="flex flex-col gap-2">
+                    <img
+                      src={msg.imageUrl}
+                      alt="Shared Image"
+                      className="max-w-full h-auto rounded-lg"
+                      style={{ maxHeight: "300px" }}
+                    />
+                    {msg.message && (
+                      <p className="text-sm text-gray-600">{msg.message}</p>
+                    )}
+                  </div>
+                )}
               </motion.div>
             </motion.div>
           ))}

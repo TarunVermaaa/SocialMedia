@@ -3,6 +3,8 @@
 import { Conversation } from "../models/conversation.model.js";
 import { Message } from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+import Cloudinary from "../utils/cloudinary.js";
+import getDataUri from "../utils/datauri.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -15,11 +17,13 @@ export const sendMessage = async (req, res) => {
     }
 
     const { message } = req.body;
-    console.log(message);
+    const image = req.file;
 
     // Check if message is not undefined or empty
-    if (!message) {
-      return res.status(400).json({ error: "Message content is required" });
+    if (!message && !image) {
+      return res
+        .status(400)
+        .json({ error: "Message content or image is required" });
     }
 
     let conversation = await Conversation.findOne({
@@ -32,10 +36,26 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+    let imageUrl = null;
+    let messageType = "text";
+
+    if (image) {
+      const fileUri = await getDataUri(image);
+
+      const cloudResponse = await Cloudinary.uploader.upload(fileUri, {
+        folder: "chat_images",
+      });
+
+      imageUrl = cloudResponse.secure_url;
+      messageType = "image";
+    }
+
     const newMessage = await Message.create({
       senderId,
       receiverId,
       message,
+      imageUrl,
+      messageType,
     });
 
     if (newMessage) conversation.messages.push(newMessage._id);

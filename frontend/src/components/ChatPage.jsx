@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { setSelectedUser } from "@/redux/authSlice";
-import { MessageCircleCode } from "lucide-react";
+import { MessageCircleCode, Image as ImageIcon, X } from "lucide-react";
 import Messages from "./Messages";
 import axios from "axios";
 import { setMessages } from "@/redux/chatSlice";
@@ -18,20 +18,53 @@ const ChatPage = () => {
   const [selectedChat, setSelectedChat] = useState(suggestedUsers[0] || null);
   const { onlineUsers, messagesMap } = useSelector((store) => store.chat);
   const [textMessage, setTextMessage] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const fileInputRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const dispatch = useDispatch();
 
   const currentMessages = messagesMap[selectedUser?._id] || [];
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      // creating a preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearImageSelection = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const sendMessageHandler = async (receiverId) => {
     try {
+      setIsLoading(true);
+      const formData = new FormData();
+
+
+      formData.append("message", textMessage);
+
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
       const res = await axios.post(
         `http://localhost:8000/api/v1/message/send/${receiverId}`,
+        textMessage ? { message: textMessage } : formData,
         {
-          message: textMessage,
-        },
-        {
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "multipart/form-data" },
           withCredentials: true,
         }
       );
@@ -44,9 +77,12 @@ const ChatPage = () => {
           })
         );
         setTextMessage("");
+        clearImageSelection();
       }
     } catch (error) {
       console.log(error);
+    } finally {
+       setIsLoading(false);
     }
   };
 
@@ -147,15 +183,51 @@ const ChatPage = () => {
                 placeholder="Type a message..."
                 className="flex-1 border border-gray-300 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               />
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageSelect}
+                accept="image/*"
+                className="hidden"
+              />
+
               <Button
-                onClick={() => sendMessageHandler(selectedUser?._id)}
-                type="submit"
-                className="!bg-white !border-none text-white px-5"
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current.click()}
+                className="rounded-full !bg-white !border-none"
               >
-                <FaPaperPlane className="text-gray-900 !border-none  hover:!text-black " />
+                <ImageIcon className="h-12 w-12 ml-5" />
+              </Button>
+
+              <Button
+                onClick={() => sendMessageHandler(selectedUser._id)}
+                disabled={!textMessage && !selectedImage}
+                className="rounded-full cursor-pointer !bg-white text-black hover:bg-blue-600"
+              >
+                <FaPaperPlane className="h-8 w-12 -mr-2" />
               </Button>
             </form>
           </div>
+
+          {imagePreview && (
+            <div className="mt-2 relative">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="max-h-32 ml-4 rounded-lg"
+              />
+              <Button
+                variant="destructive"
+                size="icon"
+                className="absolute top-1 right-1 rounded-full h-6 w-6 "
+                onClick={clearImageSelection}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex-1 flex flex-col gap-2 items-center justify-center pl-8 mx-auto text-center">
