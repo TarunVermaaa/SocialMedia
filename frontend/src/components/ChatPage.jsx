@@ -3,7 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { setSelectedUser } from "@/redux/authSlice";
-import { MessageCircleCode, Image as ImageIcon, X, Loader2 } from "lucide-react";
+import {
+  MessageCircleCode,
+  Image as ImageIcon,
+  X,
+  Loader2,
+} from "lucide-react";
 import Messages from "./Messages";
 import axios from "axios";
 import { setMessages } from "@/redux/chatSlice";
@@ -15,6 +20,12 @@ const ChatPage = () => {
   const { user, suggestedUsers, selectedUser } = useSelector(
     (store) => store.auth
   );
+
+  // Add conversation ID calculation
+  const conversationId = selectedUser
+    ? [user._id, selectedUser._id].sort().join("-")
+    : null;
+
   const [selectedChat, setSelectedChat] = useState(suggestedUsers[0] || null);
   const { onlineUsers, messagesMap } = useSelector((store) => store.chat);
   const [textMessage, setTextMessage] = useState("");
@@ -25,7 +36,8 @@ const ChatPage = () => {
 
   const dispatch = useDispatch();
 
-  const currentMessages = messagesMap[selectedUser?._id] || [];
+  // Use conversation ID for messages
+  const currentMessages = messagesMap[conversationId] || [];
 
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
@@ -53,7 +65,6 @@ const ChatPage = () => {
       setIsLoading(true);
       const formData = new FormData();
 
-
       formData.append("message", textMessage);
 
       if (selectedImage) {
@@ -72,7 +83,7 @@ const ChatPage = () => {
       if (res.data.success) {
         dispatch(
           setMessages({
-            userId: receiverId,
+            userId: conversationId, // Use conversationId instead of receiverId
             messages: [...currentMessages, res.data.newMessage],
           })
         );
@@ -82,11 +93,9 @@ const ChatPage = () => {
     } catch (error) {
       console.log(error);
     } finally {
-       setIsLoading(false);
+      setIsLoading(false);
     }
   };
-
-
 
   return (
     <div className="flex  h-screen overflow-hidden -ml-[46%]">
@@ -190,17 +199,15 @@ const ChatPage = () => {
                 className="hidden"
               />
 
-             
-
               <Button
                 onClick={() => sendMessageHandler(selectedUser._id)}
-                disabled={!textMessage && !selectedImage || isLoading}
+                disabled={(!textMessage && !selectedImage) || isLoading}
                 className="rounded-full cursor-pointer !bg-white text-black hover:bg-blue-600"
               >
                 {isLoading ? (
                   <Loader2 className="h-8 w-12 -mr-2 animate-spin" />
                 ) : (
-                  <FaPaperPlane className="h-8 w-12 -mr-2"  />
+                  <FaPaperPlane className="h-8 w-12 -mr-2" />
                 )}
               </Button>
 

@@ -10,10 +10,15 @@ import { motion, AnimatePresence } from "framer-motion";
 const Messages = ({ selectedUser }) => {
   useGetRTM();
   useGetAllMessage();
+  const { user } = useSelector((store) => store.auth);
+
+  // Calculate conversation ID
+  const conversationId = selectedUser
+    ? [user._id, selectedUser._id].sort().join("-")
+    : null;
 
   const { messagesMap } = useSelector((store) => store.chat);
-  const currentMessages = messagesMap[selectedUser?._id] || [];
-  const { user } = useSelector((store) => store.auth);
+  const currentMessages = messagesMap[conversationId] || [];
 
   const messagesEndRef = useRef(null);
 
@@ -23,7 +28,7 @@ const Messages = ({ selectedUser }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [currentMessages]);
+  }, [currentMessages, conversationId]); // Add conversationId as dependency
 
   // Check if user is authenticated
   if (!user) {

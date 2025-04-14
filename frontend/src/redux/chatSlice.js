@@ -16,12 +16,8 @@ const chatSlice = createSlice({
       if (!state.messagesMap) state.messagesMap = {};
 
       if (userId && messages) {
-        // Merge new messages with existing ones
-        const existingMessages = state.messagesMap[userId] || [];
-        const newMessages = messages.filter(
-          (msg) => !existingMessages.some((m) => m._id === msg._id)
-        );
-        state.messagesMap[userId] = [...existingMessages, ...newMessages];
+        // Ensure messages are stored only for the specific conversation ID
+        state.messagesMap[userId] = messages;
       }
     },
     addMessage: (state, action) => {
@@ -31,7 +27,7 @@ const chatSlice = createSlice({
         state.messagesMap[userId] = [];
       }
 
-      // Check if message already exists
+      // Check if message already exists to avoid duplicates
       if (!state.messagesMap[userId].some((msg) => msg._id === message._id)) {
         state.messagesMap[userId].push(message);
       }

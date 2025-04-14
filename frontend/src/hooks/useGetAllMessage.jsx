@@ -1,4 +1,3 @@
-import { setPosts } from "@/redux/postSlice";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
@@ -6,7 +5,12 @@ import { setMessages } from "@/redux/chatSlice";
 
 const useGetAllMessage = () => {
   const dispatch = useDispatch();
-  const { selectedUser } = useSelector((store) => store.auth);
+  const { user, selectedUser } = useSelector((store) => store.auth);
+
+  // Calculate conversation ID consistently
+  const conversationId = selectedUser
+    ? [user._id, selectedUser._id].sort().join("-")
+    : null;
 
   useEffect(() => {
     const fetchAllMessage = async () => {
@@ -23,7 +27,7 @@ const useGetAllMessage = () => {
         if (res.data.success) {
           dispatch(
             setMessages({
-              userId: selectedUser._id,
+              userId: conversationId, // Use conversation ID
               messages: res.data.messages,
             })
           );
@@ -32,12 +36,15 @@ const useGetAllMessage = () => {
         console.log("Error:", error);
       }
     };
+
     fetchAllMessage();
 
     const interval = setInterval(fetchAllMessage, 15000);
 
     return () => clearInterval(interval);
-  }, [selectedUser?._id]);
+  }, [selectedUser?._id, conversationId, dispatch, user._id]); // Include all dependencies
+
+  return null;
 };
 
 export default useGetAllMessage;

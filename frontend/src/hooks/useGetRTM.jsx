@@ -5,19 +5,22 @@ import { setMessages, addMessage } from "@/redux/chatSlice";
 const useGetRTM = () => {
   const dispatch = useDispatch();
   const { socket } = useSelector((store) => store.socketio);
+  const { user } = useSelector((store) => store.auth);
 
   useEffect(() => {
+    // Skip if user is not logged in
+    if (!user) return;
+
     const handleNewMessage = (newMessage) => {
-      // Dono users ke liye store karein
+      // Create conversation ID by sorting the IDs to ensure consistency
+      const conversationId = [newMessage.senderId, newMessage.receiverId]
+        .sort()
+        .join("-");
+
+      // Store only once using conversation ID
       dispatch(
         addMessage({
-          userId: newMessage.senderId,
-          message: newMessage,
-        })
-      );
-      dispatch(
-        addMessage({
-          userId: newMessage.receiverId,
+          userId: conversationId,
           message: newMessage,
         })
       );
@@ -28,7 +31,9 @@ const useGetRTM = () => {
     return () => {
       socket?.off("newMessage", handleNewMessage);
     };
-  }, [socket, dispatch]);
+  }, [socket, dispatch, user?.id]); // Use optional chaining here
+
+  return null;
 };
 
 export default useGetRTM;
