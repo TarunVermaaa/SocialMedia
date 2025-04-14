@@ -6,11 +6,6 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-// ✅ React component
- export  const Utils = () => {
-  return <div></div>;
-};
-
 
 export const readFileAsDataURL = (file) => {
   return new Promise((resolve) => {

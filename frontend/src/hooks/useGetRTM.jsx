@@ -9,7 +9,7 @@ const useGetRTM = () => {
 
   useEffect(() => {
     // Skip if user is not logged in
-    if (!user) return;
+    if (!user || user?._id) return;
 
     const handleNewMessage = (newMessage) => {
       // Create conversation ID by sorting the IDs to ensure consistency
@@ -31,7 +31,7 @@ const useGetRTM = () => {
     return () => {
       socket?.off("newMessage", handleNewMessage);
     };
-  }, [socket, dispatch, user?.id]); // Use optional chaining here
+  }, [socket, dispatch, user?._id]); // Use optional chaining here
 
   return null;
 };
